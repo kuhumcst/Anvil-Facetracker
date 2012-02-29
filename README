@@ -1,3 +1,22 @@
+Introduction
+============
+
+The Anvil Facetracker is a plugin that automatically creates annotations for
+head movements. It has two modi operandi:
+
+1. Create annotations when the head's velocity is above some preset threshold
+2. Create annotations when the head's acceleration is above some preset
+   threshold.
+   
+The acceleration of the head is a direct consequence of forces being exerted
+on the head, which can be gravity, but more commonly are the due to the
+muscles in the body, especially in the neck.
+
+The software is based on face recognition algorithms implemented in OpenCV
+(http://sourceforge.net/projects/opencvlibrary/). The bridge between the C-
+world of OpenCV and the Java world of Anvil is created by JavaCV
+(http://code.google.com/p/javacv/).
+
 Installing the face tracker.
 ============================
 
