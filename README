@@ -1,0 +1,206 @@
+Installing the face tracker.
+============================
+
+The installation has been tested on a PC with Windows 7 Enterprise, 64-bit and
+another PC with Windows XP SP3, 32-bit.
+
+The 32-bit face tracker runs in 32- and 64-bit Windows. The 64-bit facetracker
+runs only under 64-bit Windows. It is advised to choose the 64-bit face tracker
+if you have a 64-bit Windows, because it runs smoothest.
+
+Java needs to be installed. If you have plans to recompile the face tracker's
+source code, install jdk1.7.0_02 with the bitness of your choice if you have a
+64-bit architecture, otherwise choose the 32-bit version. A run-time only
+version of Java may work, but this has not been tested.
+
+Download Anvil 5.0.23 from http://www.anvil-software.de/ and install the
+software.
+
+Copy the files in this distribution of the facetracker to the Anvil installation
+folder, taking care that the destination directory names match with the source
+directory names. There is a common folder anvil23-plugin for both 32-bit and
+64-bit platforms and there are folders with 32-bit and 64-bit specific stuff:
+* batch files for compilation of the facetracker and for running Anvil with
+the facetracker
+* compressed archives containing OpenCV and JavaCV libraries. The relevant 
+compressed archive should be unpacked and its contents copies to the
+Anvil/required folder.
+* Microsoft redistributables
+
+Install the Microsoft redistributables. The installation file is called
+vcredist_x86 or vcredist_x64, depending on the architecture.
+
+If you have both a 64-bit and a 32-bit Java, or if you have several
+Javas with different version numbers, it may be necessary to specify 
+the path to Java in the batch files for compiling and running. Open 
+the files COMPILE_FACETRACKER.BAT and ANVIL_FACETRACKER.BAT in an editor.
+(Right click | Edit). If you see a line starting with e.g. "jar", "javac"
+or "java", the system's path information is used to find these programs.
+You can specify the version of java by adding the full path, e.g.
+
+    "C:\Program Files (x86)\Java\jdk1.7.0_02\bin\java"
+
+Necessary preparations from within the Anvil UI
+===============================================
+
+Start Anvil by running the ANVIL_FACETRACKER batch file.
+
+Editing the Anvil spec file
+---------------------------
+
+We now have to define tracks were the face tracker can dump its annotations.
+There are two kinds of face tracker annotations: for velocity and for
+acceleration. (Acceleration is the change of velocity with time and is caused
+by some force, e.g. muscle forces or gravitation.)
+
+Open the Specification Editor (Edit | Edit specification ...).
+Velocity annotations are stored in a primary track with track attributes called
+"velocity". Likewise acceleration annotations are stored in a primary track
+with track attributes called "acceleration".
+
+You can create as many velocity and acceleration tracks as needed in the
+specification file.
+
+Here's how:
+1. Decide whether you want to create a new specification file 
+        (File | Create new specification)
+    or whether you want to edit an existing one.
+        (File | Open specification | <browse and open>)
+
+2. Decide where to put the new tracks. If you are creating a new specification
+file, there is not much to choose. Click the word "Specification" in the track
+pane. If you are editing an existing specification, you can choose
+"Specification" or a group, the cursively spelled names in the track pane.
+
+3. Press the Add Track/Group button and choose Add Track.
+
+4. Choose a track name, for example "Velocity person 1". Primary track is
+already OK.
+
+5. Press the Add attribbute button.
+
+6. Name must be "velocity" or "acceleration" (without the quotes). Type must
+be Timestamped Point.
+
+7. Save the specification file.
+
+Add the face tracker plugin
+---------------------------
+
+Now you need to tell Anvil that it has a plug-in. (The plug-in used to be
+detected automatically in older versions of Anvil.) Do the following:
+
+1. Edit | Options ... | Plug-ins | add
+2. Choose a name for the face tracker
+3. In the next windows you are asked for the full class name of the plug-in
+class. Write
+    FaceTrackerAnvilPlugin
+4. press OK twice to return focus to Anvil's main window.
+5. Choose Tools | <name you have given to the facetracker in step 2.>
+A new window opens with face tracker controls.
+
+Running the face tracker
+========================
+
+Start Anvil by running the ANVIL_FACETRACKER batch file. Next you need to
+open a movie and you need to activate the plugin, in either order.
+
+Activate the Facetracker plugin
+-------------------------------
+
+* From the Edit menu, choose Options... . 
+* Press the OK button.
+* From the Tools menu, choose the factracker.
+
+Opening a movie
+---------------
+ 
+The next step is to open and prepare a movie for annotation of head movements:
+1. File | Open ... | <browse and open movie>
+2. In the Annotation properties windows, browse to the specification file
+you made earlier, open it and press OK
+
+Getting started with the facetracker
+------------------------------------
+
+1. In the annotation window you choose the velocity or accelation track by
+clicking its name.
+2. If you do not want to annotate the movie from the start, navigate to the
+frame where you want the annotation to start, and put the cursor about one
+second before the startpoint.
+3. In the Main Video window, point with the mouse pointer at the person's
+face who's head movements you want to annotate.
+
+If there is only one person, you can let the software find the face. You may
+need to watch the annotation process as the software may lose track of the
+face you had pointed at and be attracted to another person's face.
+
+Now you can start the annotation process. You get the best results by letting
+the software analyse each and every frame. To ensure that no frames are
+skipped, you should let the face tracker step through the movie rather than
+play the movie. Stepping is started by pressing the 'Step' button in the Face 
+Tracker window. As the program starts to step, the text on the button face
+changes to 'Stop', so pressing the button once again stops the movie.
+
+Controlling the Facetracker
+---------------------------
+
+In the Face Tracker window are a number of sliders and buttons. The sliders
+are per default set at positions that work well, so you can leave them as they
+are if you want.
+
+With the upper slider you can tell the algorithm on how many frames it has to
+base the calculation of velocity or acceleration. The higher the value is set,
+the smoother will the movements seem to be. Also, high values will tend to
+erase very quick, subtle movements, because they will be averaged away. The
+highest value, 25, corresponds to a full second at normal speed. If the value
+is set much lower than 10, the inevitable errors in the estimates of the
+face's position in each frame will likely generate many spurious movements and
+consequently many false positive annotation elements.
+
+The other two sliders set the sensitivity for horizontal and vertical
+movements. The lower the threshold, the more annotations for velocity or
+accelerations are generated, and the longer the stretch in time will be over
+which a movement is perceived to take place. The face tracker can also be used
+to annotate the stretches in the movie where little happens, e.g. the precise
+moment where a movement has come to a stand-still. In that case a low value of
+a threshold means that relatively few annotations will be generated.
+
+There are also two check boxes in the face tracker window:
+
+1. Suspend face tracking - select if you temporarily want to disable face
+tracking, for example for seeing the movie at normal speed.
+
+2. Annotate when velocity/acceleration is LOW - select this if you are
+interested for the stretches where velocity or acceleration is low. 
+(The latter could be the case if a person walks through the scene at
+a constant velocity, provided she or he doesn't make hade movements at the
+same time.)
+
+There are four buttons in the face tracker window.
+
+1. Step/Stop - press this button to start and stop a frame-by-frame analysis of
+the movie. This is the prefered way to make automatic anotations, because it
+is reproducible. Pressing the Play button plays the movie at normal speed,
+which current hardware cannot keep up with: many frames will never be analysed.
+
+2. Keep changes - press this button if you want to retain the settings for the
+currently selected track. After pressing this button you can switch to another
+track without Anvil forgetting the settings in the track you left, but
+pressing this button does not save the settings to disk. When you later save
+the annotation file to disk, the settings for each track individually will be
+saved as well.
+
+3. Cancel changes - press this button if you want to undo the settings you made
+for the current track. Just switching to another track also cancels any such
+changes.
+
+4. Dismiss - close the face tracker
+    
+
+
+
+
+
+
+Bart Jongejan 20120229

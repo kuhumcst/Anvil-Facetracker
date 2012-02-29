@@ -1,0 +1,117 @@
+{leastsquare.bra
+
+Compute formulas for least square approximation to second and third degree
+equations.
+
+This is Bracmat code. (https://github.com/BartJongejan/Bracmat)}
+
+solver=
+  ( solve
+  =     vars exps var A Z a b c d
+      , solution deps nondeps nondep
+    .   !arg:(?vars.?exps)
+      & !vars:%?var ?vars
+      & !exps:?A ?a+?b*!var*?c+?d ?Z
+      & !A !Z:?exps
+      & !b*!c:?deps
+      & !a:?nondeps
+      &   whl
+        ' ( !d:?nondep+?b*!var*?c+?d
+          & !nondep+!nondeps:?nondeps
+          & !b*!c+!deps:?deps
+          )
+      & !d+!nondeps:?nondeps
+      & ( factorize
+        =   a b n c A C T S
+          .     !arg:?a+?*?b^-1*?+?c
+              & !a+!c:%
+              & 0:?S
+              &   whl
+                ' ( !arg:%?T+?arg
+                  &     !S
+                      + (   !T:?A*!b^?n*?C
+                          & !A*!b^(!n+1)*!C
+                        | !T*!b
+                        )
+                    : ?S
+                  )
+              & !b^-1*factorize$!S
+            | !arg
+        )
+      &   (!var.factorize$(1+-1*!nondeps+-1)*factorize$!deps^-1)
+        : ?solution
+      & put$(\n,solutions,APP)
+      & put$(!solution,solutions,APP)
+      & put$(\n,solutions,APP)
+      & (   !exps:%
+          & sub$(!exps.!solution):?exps
+          & (its.solve)$(!vars.!exps)
+        | 
+        )
+  )
+  ( new
+  =   
+    .   put$("zeroth degree: a:position
+",solutions,NEW)
+      & (its.solve)$(a.period*a+-1*Sh)
+      & put$("
+
+first degree: a:position, b:velocity
+",solutions,APP)
+      &   (its.solve)
+        $ ( a b
+          . period*a+St*b+-1*Sh St*a+St2*b+-1*Sth
+          )
+      &   put
+        $ ( "
+
+second degree: a:position, b:velocity c:acceleration
+"
+          , solutions
+          , APP
+          )
+      &   (its.solve)
+        $ ( a b c
+          .   period*a+St*b+St2*c+-1*Sh
+              St*a+St2*b+St3*c+-1*Sth
+              St2*a+St3*b+St4*c+-1*St2h
+          )
+      &   put
+        $ ( "
+
+third degree: a:position b:velocity c:acceleration d:change of acceleration
+"
+          , solutions
+          , APP
+          )
+      &   (its.solve)
+        $ ( a b c d
+          .   period*a+St*b+St2*c+St3*d+-1*Sh
+              St*a+St2*b+St3*c+St4*d+-1*Sth
+              St2*a+St3*b+St4*c+St5*d+-1*St2h
+              St3*a+St4*b+St5*c+St6*d+-1*St3h
+          )
+  );
+
+r=
+  get'"leastsquare.bra"
+& rmv$(str$(leastsquare ".bak"))
+& ren$("leastsquare.bra".str$(leastsquare ".bak"))
+&   put
+  $ ( "{leastsquare.bra
+
+Compute formulas for least square approximation to second and third degree
+equations.
+
+This is Bracmat code. (http://cst.dk/download/bracmat)}
+
+"
+    , "leastsquare.bra"
+    , NEW
+    )
+& lst'(solver,"leastsquare.bra",APP)
+& put'(\n,"leastsquare.bra",APP)
+& lst'(r,"leastsquare.bra",APP)
+& put$(str$("\nnew'" solver ";\n"),"leastsquare.bra",APP);
+
+new'solver;
