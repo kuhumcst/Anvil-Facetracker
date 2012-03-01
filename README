@@ -218,8 +218,40 @@ changes.
     
 
 
+Sources
+=======
+
+Java jdk1.7.0_02
+----------------
+http://www.oracle.com/
 
 
+Anvil 5.0.23 
+------------
+http://www.anvil-software.de/
+
+
+OpenCV 2.3.1
+------------
+http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/OpenCV-2.3.1-win-superpack.exe/download
+After installation, libraries were copied from 
+	opencv2.3.1\build\x86\vc10\bin   (32 bit)
+	opencv2.3.1\build\x64\vc10\bin   (64 bit)
+to the required\extern\OpenCV folder under anvil
+
+
+JavaCV
+------
+http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20120218.zip&can=2&q=
+http://code.google.com/p/javacv/downloads/detail?name=javacv-src-20120218.zip&can=2&q=
+The files javacpp.jar, javacv.jar and javacv-windows-x86_64.jar found in
+javacv-bin are copied to the required\extern\OpenCV folder under anvil
+
+
+Microsoft Redistributables
+--------------------------
+http://www.microsoft.com/download/en/details.aspx?id=5555    (32 bit)
+http://www.microsoft.com/download/en/details.aspx?id=14632   (64 bit)
 
 
 Bart Jongejan 20120229
