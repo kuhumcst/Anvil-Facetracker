@@ -3,4 +3,3 @@ javac -classpath "%CLASSPATH%";required/anvil.jar;required/extern/JMF/win32/jmf.
 cd plugins
 jar -cf FaceTrackerAnvilPlugin.jar *.class
 cd ..
-
