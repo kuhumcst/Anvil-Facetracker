@@ -30,20 +30,23 @@ if you have a 64-bit Windows, because it runs smoothest.
 Java needs to be installed. If you have plans to recompile the face tracker's
 source code, install jdk1.7.0_02 with the bitness of your choice if you have a
 64-bit architecture, otherwise choose the 32-bit version. A run-time only
-version of Java may work, but this has not been tested.
+version of Java may work, but this has not been tested. The facetracker is
+compiled with jdk1.7.0_02, so you'll need a run-time compatible with that. If
+you have an older JDK, you can recompile the facetracker.
 
 Download Anvil 5.0.23 from http://www.anvil-software.de/ and install the
-software.
+software. (Update: the face tracker also works with the newer version 
+Anvil 5.1)
 
 Copy the files in this distribution of the facetracker to the Anvil installation
 folder, taking care that the destination directory names match with the source
-directory names. There is a common folder anvil23-plugin for both 32-bit and
+directory names. There is a common folder anvil-plugin for both 32-bit and
 64-bit platforms and there are folders with 32-bit and 64-bit specific stuff:
 * batch files for compilation of the facetracker and for running Anvil with
 the facetracker
 * compressed archives containing OpenCV and JavaCV libraries. The relevant 
-compressed archive should be unpacked and its contents copies to the
-Anvil/required folder.
+compressed archive should be unpacked and its contents copied to (= merged with)
+the Anvil/required folder.
 * Microsoft redistributables
 
 Install the Microsoft redistributables. The installation file is called
@@ -185,7 +188,7 @@ to annotate the stretches in the movie where little happens, e.g. the precise
 moment where a movement has come to a stand-still. In that case a low value of
 a threshold means that relatively few annotations will be generated.
 
-There are also two check boxes in the face tracker window:
+There are also four check boxes in the face tracker window:
 
 1. Suspend face tracking - select if you temporarily want to disable face
 tracking, for example for seeing the movie at normal speed.
@@ -195,6 +198,13 @@ interested for the stretches where velocity or acceleration is low.
 (The latter could be the case if a person walks through the scene at
 a constant velocity, provided she or he doesn't make hade movements at the
 same time.)
+
+3. Left - only annotate head movements of person in left half of video
+
+4. Right - only annotate head movements of person in right half of video
+
+Having Left and Right both checked has the same effect as none of them being
+checked.
 
 There are four buttons in the face tracker window.
 
@@ -226,8 +236,8 @@ Java jdk1.7.0_02
 http://www.oracle.com/
 
 
-Anvil 5.0.23 
-------------
+Anvil 5.0.23 or Anvil 5.1
+-------------------------
 http://www.anvil-software.de/
 
 

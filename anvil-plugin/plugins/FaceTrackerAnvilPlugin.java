@@ -152,8 +152,15 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             }
         public void ArrowStuff(double hVal,double vVal,int ind,String attribute,Color belowThreshold,Color aboveThreshold)
             {
+            /*
+            hVal and vVal are pixels/second {velocity} or pixels/(second*second) {acceleration}
+            */
             double h_component = hVal * scale;
             double v_component = vVal * scale;
+            /*
+            scale is 5 {velocity} or 1 {acceleration}
+            scale allows us to use same sliders, without the visually distressing change of tickmarks.
+            */
             /*
             * Make an arrow to be displayed in
             * the overlay panel.
@@ -283,6 +290,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private JButton buttSave = new JButton("Keep changes");
     private JButton buttCancel = new JButton("Cancel changes");
     private JCheckBox MinimaCheckBox;
+    private JCheckBox LeftCheckBox;
+    private JCheckBox RightCheckBox;
     private int slidehValueVelocity = 10;
     private int slidevValueVelocity = 10;
     private int slidehValueMax = 20;
@@ -336,6 +345,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private boolean doVelocity = true;
     private boolean doAcceleration = false;
 	private boolean doMinima = false;
+	private boolean doLHS = false;
+	private boolean doRHS = false;
 
     double headsize = 160.0; // 80 + 80, horizontal and vertical size of head's clip rectangle in a movie I've seen.
     double vectorSizePerUnitOfHeadSize = 1.0;
@@ -496,9 +507,15 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 
 		MinimaCheckBox = new JCheckBox(EMPTY_TEXT); 
         MinimaCheckBox.setActionCommand("Minima");
+		LeftCheckBox = new JCheckBox(EMPTY_TEXT); 
+        LeftCheckBox.setActionCommand("Left");
+		RightCheckBox = new JCheckBox(EMPTY_TEXT); 
+        RightCheckBox.setActionCommand("Right");
 
         noneButton.addActionListener(this);
 		MinimaCheckBox.addActionListener(this);
+		LeftCheckBox.addActionListener(this);
+		RightCheckBox.addActionListener(this);
 
         buttons.add(buttStep);
         buttons.add(buttSave);
@@ -506,6 +523,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         buttons.add(buttCancel);
         info.add(noneButton);
 		info.add(MinimaCheckBox);
+		info.add(LeftCheckBox);
+		info.add(RightCheckBox);
         info.add(activeTrackLabelVar);
         info.add(activeTrackLabelSelected);
         info.add(messageLabel);
@@ -659,6 +678,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         slideh.setEnabled(val);
         slidev.setEnabled(val);
         MinimaCheckBox.setEnabled(val);
+        LeftCheckBox.setEnabled(val);
+        RightCheckBox.setEnabled(val);
 		}
 
     public void setBegin()
@@ -692,6 +713,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 		setBegin();
         doVelocity = true;
         MinimaCheckBox.setText("Annotate when velocity is LOW.");
+        LeftCheckBox.setText("Left");
+        RightCheckBox.setText("Right");
         if(period < 2)
             {
             slide.setValue(2);
@@ -708,6 +731,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         doVelocity = false;
         doAcceleration = true;
         MinimaCheckBox.setText("Annotate when acceleration is LOW.");
+        LeftCheckBox.setText("Left");
+        RightCheckBox.setText("Right");
         if(period < 3)
             {
             slide.setValue(3);
@@ -720,6 +745,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     public void setNone()
 		{
         MinimaCheckBox.setText(EMPTY_TEXT);
+        LeftCheckBox.setText(EMPTY_TEXT);
+        RightCheckBox.setText(EMPTY_TEXT);
         doVelocity = false;
         doAcceleration = false;
 		noneButton.setSelected(true);
@@ -749,6 +776,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 						annProperties.addProperty("VerSensitivity."+ActiveTrack,new AnnStringProperty(Integer.toString(vthres.slideVal)));
 						annProperties.addProperty("Frames."+ActiveTrack,new AnnStringProperty(Integer.toString(period)));
 						annProperties.addProperty("doMinima."+ActiveTrack,new AnnStringProperty(doMinima ? "1" : "0"));
+						annProperties.addProperty("LHS."+ActiveTrack,new AnnStringProperty(doLHS ? "1" : "0"));
+						annProperties.addProperty("RHS."+ActiveTrack,new AnnStringProperty(doRHS ? "1" : "0"));
 						buttSave.setEnabled(false);
 						buttCancel.setEnabled(false);
 						controlsTouched = false;
@@ -846,6 +875,31 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			notFoundInFile = true;
 			}
 		MinimaCheckBox.setSelected(doMinima);
+		
+        prop = annProperties.getProperty("LHS."+ActiveTrack);
+        if(prop != null)
+			{
+			doLHS = Integer.parseInt(prop.getContent()) == 1;
+			}
+		else
+			{
+			doLHS = false;
+			notFoundInFile = true;
+			}
+		LeftCheckBox.setSelected(doLHS);
+
+        prop = annProperties.getProperty("RHS."+ActiveTrack);
+        if(prop != null)
+			{
+			doRHS = Integer.parseInt(prop.getContent()) == 1;
+			}
+		else
+			{
+			doRHS = false;
+			notFoundInFile = true;
+			}
+		RightCheckBox.setSelected(doRHS);
+
 		controlsTouched = false;
 		return notFoundInFile;
 		}
@@ -977,6 +1031,22 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttCancel.setEnabled(true);            
 			controlsTouched = true;
             }
+        else if(com.equals("Left"))
+            {
+            JCheckBox cb = (JCheckBox)e.getSource();
+            doLHS = cb.isSelected();
+			buttSave.setEnabled(true);
+			buttCancel.setEnabled(true);            
+			controlsTouched = true;
+            }
+        else if(com.equals("Right"))
+            {
+            JCheckBox cb = (JCheckBox)e.getSource();
+            doRHS = cb.isSelected();
+			buttSave.setEnabled(true);
+			buttCancel.setEnabled(true);            
+			controlsTouched = true;
+            }
         }
 
     /**
@@ -1093,22 +1163,58 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 
     public void clipCorrect()
         {
-        if (horminClip < 0) 
-            {
-            horminClip = 0;
+        if(doLHS && !doRHS)
+			{
+			if (horminClip < 0) 
+				{
+				horminClip = 0;
+				}
+			else if (horminClip > overlayPanelHorSize / 2) 
+				{
+				horminClip = overlayPanelHorSize / 2 - 1;
+				}
+			if (hormaxClip > overlayPanelHorSize / 2) 
+				{
+				hormaxClip = overlayPanelHorSize / 2;
+				}
+			}
+		else if(doRHS && !doLHS)
+			{
+			if (horminClip < overlayPanelHorSize / 2) 
+				{
+				horminClip = overlayPanelHorSize / 2;
+				}
+			if (hormaxClip < overlayPanelHorSize / 2) 
+				{
+				hormaxClip = overlayPanelHorSize / 2 + 1;
+				}
+			else if (hormaxClip > overlayPanelHorSize) 
+				{
+				hormaxClip = overlayPanelHorSize;
+				}
+			}
+		else
+			{
+			if (horminClip < 0) 
+				{
+				horminClip = 0;
+				}
+			if (hormaxClip > overlayPanelHorSize) 
+				{
+				hormaxClip = overlayPanelHorSize;
+				}
             }
+            
         if (verminClip < 0) 
             {
             verminClip = 0;
-            }
-        if (hormaxClip > overlayPanelHorSize) 
-            {
-            hormaxClip = overlayPanelHorSize;
             }
         if (vermaxClip > overlayPanelVerSize) 
             {
             vermaxClip = overlayPanelVerSize;
             }
+			
+			
         }
 
     public void startBuffering()
@@ -1370,7 +1476,6 @@ For vertical, replace h th t2h by v tv t2v
                 buffer at the specified position and with the given
                 dimensions. 
                 */
-                float scale = 1.2f;
 
 	            cvCvtColor(grabbedImage, grayImage, CV_BGR2GRAY);
 		        CvSeq faces = cvHaarDetectObjects(grayImage, classifier, storage, 1.1, 3, CV_HAAR_DO_CANNY_PRUNING);
