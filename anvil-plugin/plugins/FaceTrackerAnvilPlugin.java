@@ -41,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JRadioButton;
 import javax.swing.JCheckBox;
 import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -117,6 +118,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             ellipseRadius = slideVal;
 			buttSave.setEnabled(true);
 			buttCancel.setEnabled(true);            
+			buttHaar.setEnabled(true);            
 			}
         };
     Threshold hthres = new Threshold();
@@ -273,13 +275,14 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private final String EMPTY_TEXT = "---";
 
     private final int WIDTH = 320;
-    private final int HEIGHT = 470;
+    private final int HEIGHT = 510;
 
     //  private AnvilMain main;
     private Anvil main;
 
     private JLabel activeTrackLabelVar;
     private JLabel activeTrackLabelSelected;
+    private JLabel HaarcascadeSelected;
     private JLabel messageLabel;
 
     private JSlider slide;
@@ -289,6 +292,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private JButton buttDismiss = new JButton("Dismiss");
     private JButton buttSave = new JButton("Keep changes");
     private JButton buttCancel = new JButton("Cancel changes");
+    private JButton buttHaar = new JButton("Haarcascade");
     private JCheckBox MinimaCheckBox;
     private JCheckBox LeftCheckBox;
     private JCheckBox RightCheckBox;
@@ -366,14 +370,18 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private JButton buttStep;
     CvHaarClassifierCascade classifier;
     private JCheckBox noneButton;
+    private String HaarcascadesDir;
+    private String defaultHaarcascade = "haarcascade_frontalface_alt.xml";
+    private String selectedHaarcascade = defaultHaarcascade;
     
     public FaceTrackerAnvilPlugin()
         {
         // Preload the opencv_objdetect module to work around a known bug.
         Loader.load(opencv_objdetect.class);
 
-        String classifierName = ".\\required\\extern\\OpenCV\\haarcascade_frontalface_alt.xml";
-
+        String classifierName;
+        HaarcascadesDir = "." + File.separator + "required" + File.separator + "extern" + File.separator + "OpenCV" + File.separator + "haarcascades" + File.separator;
+        classifierName = HaarcascadesDir + selectedHaarcascade;
         // We can "cast" Pointer objects by instantiating a new object of the desired class.
         classifier = new CvHaarClassifierCascade(cvLoad(classifierName));
         if (classifier.isNull()) 
@@ -485,6 +493,9 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         activeTrackLabelSelected = new JLabel(EMPTY_TEXT);
         activeTrackLabelSelected.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 		
+        HaarcascadeSelected = new JLabel(selectedHaarcascade);
+        HaarcascadeSelected.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+		
 		messageLabel = new JLabel("");
         messageLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         
@@ -497,9 +508,11 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         buttStep.addActionListener(this);
         buttSave.addActionListener(this);
         buttCancel.addActionListener(this);
+        buttHaar.addActionListener(this);
         buttStep.setEnabled(false);
         buttSave.setEnabled(false);
 		buttCancel.setEnabled(false);
+		buttHaar.setEnabled(true);
 
         noneButton = new JCheckBox("Suspend face tracking");
         noneButton.setActionCommand("none");
@@ -521,12 +534,14 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         buttons.add(buttSave);
         buttons.add(buttDismiss);
         buttons.add(buttCancel);
+        buttons.add(buttHaar);
         info.add(noneButton);
 		info.add(MinimaCheckBox);
 		info.add(LeftCheckBox);
 		info.add(RightCheckBox);
         info.add(activeTrackLabelVar);
         info.add(activeTrackLabelSelected);
+        info.add(HaarcascadeSelected);
         info.add(messageLabel);
         
         JPanel slidersh = new JPanel();
@@ -615,6 +630,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 		setSettingsEnabled(false);
 		buttSave.setEnabled(false);
 		buttCancel.setEnabled(false);            
+		buttHaar.setEnabled(true);            
         return true;
         }
 
@@ -646,6 +662,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                 }
             buttSave.setEnabled(true);
 			buttCancel.setEnabled(true);
+			buttHaar.setEnabled(true);
 			controlsTouched = true;
             }
         if (!slideh.getValueIsAdjusting()) 
@@ -778,8 +795,10 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 						annProperties.addProperty("doMinima."+ActiveTrack,new AnnStringProperty(doMinima ? "1" : "0"));
 						annProperties.addProperty("LHS."+ActiveTrack,new AnnStringProperty(doLHS ? "1" : "0"));
 						annProperties.addProperty("RHS."+ActiveTrack,new AnnStringProperty(doRHS ? "1" : "0"));
+						annProperties.addProperty("Haarcascade."+ActiveTrack,new AnnStringProperty(selectedHaarcascade));
 						buttSave.setEnabled(false);
 						buttCancel.setEnabled(false);
+						buttHaar.setEnabled(true);
 						controlsTouched = false;
 						ann.setModified(true);            
 						}
@@ -809,6 +828,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 						setControls();
 						buttSave.setEnabled(false);
 						buttCancel.setEnabled(false);            
+						buttHaar.setEnabled(true);            
 						}
                     }
                 catch(java.lang.ClassCastException ee)
@@ -899,6 +919,19 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			notFoundInFile = true;
 			}
 		RightCheckBox.setSelected(doRHS);
+
+        prop = annProperties.getProperty("Haarcascade."+ActiveTrack);
+        if(prop != null)
+			{
+			selectedHaarcascade = prop.getContent();
+			}
+		else
+			{
+			selectedHaarcascade = defaultHaarcascade;
+			notFoundInFile = true;
+			}
+	    HaarcascadeSelected.setText(selectedHaarcascade);
+	    classifier = new CvHaarClassifierCascade(cvLoad(HaarcascadesDir+selectedHaarcascade));
 
 		controlsTouched = false;
 		return notFoundInFile;
@@ -1029,6 +1062,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             doMinima = cb.isSelected();
 			buttSave.setEnabled(true);
 			buttCancel.setEnabled(true);            
+			buttHaar.setEnabled(true);            
 			controlsTouched = true;
             }
         else if(com.equals("Left"))
@@ -1037,6 +1071,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             doLHS = cb.isSelected();
 			buttSave.setEnabled(true);
 			buttCancel.setEnabled(true);            
+			buttHaar.setEnabled(true);            
 			controlsTouched = true;
             }
         else if(com.equals("Right"))
@@ -1045,7 +1080,22 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             doRHS = cb.isSelected();
 			buttSave.setEnabled(true);
 			buttCancel.setEnabled(true);            
+			buttHaar.setEnabled(true);            
 			controlsTouched = true;
+            }
+        else if(com.equals("Haarcascade"))
+            {
+            JFileChooser fc = new JFileChooser(HaarcascadesDir);
+
+            // Show open dialog; this method does not return until the dialog is closed
+            int retval = fc.showOpenDialog(FaceTrackerAnvilPlugin.this);
+            if(retval == JFileChooser.APPROVE_OPTION)
+                {
+                selectedHaarcascade = fc.getSelectedFile().getName();
+                System.out.println("selFile:" + selectedHaarcascade);
+                HaarcascadeSelected.setText(selectedHaarcascade);
+                classifier = new CvHaarClassifierCascade(cvLoad(HaarcascadesDir+selectedHaarcascade));
+                }
             }
         }
 
@@ -1078,6 +1128,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             buttStep.setEnabled(false);
             buttSave.setEnabled(false);
             buttCancel.setEnabled(false);
+			buttHaar.setEnabled(true);            
 			controlsTouched = false;
             ann.addAnnotationChangeListener(this);
             if(ActiveTrack != null)
@@ -1148,6 +1199,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             boolean notfoundSettings = getTrackSettings();
 			buttSave.setEnabled(notfoundSettings);
 			buttCancel.setEnabled(notfoundSettings);
+			buttHaar.setEnabled(true);            
             if(cancelled)
 				messageLabel.setText("   (Changes of settings cancelled!)");
             }
@@ -1493,7 +1545,7 @@ For vertical, replace h th t2h by v tv t2v
                 path[3] = p3;
                 path[4] = p0;
                 */
-                int clipSizeIncrement = 20;
+                int clipSizeIncrement = 8;
                 int clipSizeMargin = 0;
                 if (faces.total() == 0) 
                     {
