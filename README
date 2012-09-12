@@ -132,7 +132,7 @@ Activate the Facetracker plugin
 
 * From the Edit menu, choose Options... . 
 * Press the OK button.
-* From the Tools menu, choose the factracker.
+* From the Tools menu, choose the facetracker.
 
 Opening a movie
 ---------------
@@ -206,7 +206,7 @@ same time.)
 Having Left and Right both checked has the same effect as none of them being
 checked.
 
-There are four buttons in the face tracker window.
+There are five buttons in the face tracker window.
 
 1. Step/Stop - press this button to start and stop a frame-by-frame analysis of
 the movie. This is the prefered way to make automatic anotations, because it
@@ -225,7 +225,45 @@ for the current track. Just switching to another track also cancels any such
 changes.
 
 4. Dismiss - close the face tracker
-    
+
+5. Haarcascade - The face tracker uses an algorithm based on Haar-like features
+(http://en.wikipedia.org/wiki/Haar-like_features) to detect faces in a movie
+frame. The algorithm uses a set of parameters which are obtained by machine
+learning. For best detection results, different light conditions and different
+body positures require different sets of parameters. The face tracker uses the
+parameter sets that come with the OpenCV software. These parameter sets are
+stored in files called haarcascade_<descriptor>.xml, where <descriptor> is any
+of the following list:
+
+    eye
+    eye_tree_eyeglasses
+    frontalface_alt
+    frontalface_alt2
+    frontalface_alt_tree
+    frontalface_default
+    fullbody
+    lefteye_2splits
+    lowerbody
+    mcs_eyepair_big
+    mcs_eyepair_small
+    mcs_leftear
+    mcs_lefteye
+    mcs_mouth
+    mcs_nose
+    mcs_rightear
+    mcs_righteye
+    mcs_upperbody
+    profileface
+    righteye_2splits
+    upperbody
+
+As can be seen, in theory the face tracker can be used to track other bodily
+parts than faces as well. Not every Haar cascade is equally effective, though.
+The default Haar cascade choice is haarcascade_frontalface_alt.xml, which also
+works for faces that are turned slightly away from frontal. If the face tracker
+cannot detect a face most of the time, it is advised to try several haar
+cascades from the list. Press the Haarcascade button and choose one of the xml
+files that are shown in the dialogue box.
 
 
 Sources
