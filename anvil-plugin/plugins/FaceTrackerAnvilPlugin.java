@@ -1403,7 +1403,7 @@ For vertical, replace h th t2h by v tv t2v
             int point = (int) (time.getSeconds() * 100 / mediaDelegate.getVideoDuration().getSeconds());
             if (videoWindow == null) 
                 {
-                videoWindow = main.getVideoWindow();
+                videoWindow =  (JFrame)main.getVideoWindow();
                 }
             Dimension size = videoWindow.getSize();
             int horSizeVideo = size.width;
