@@ -12,60 +12,50 @@ The acceleration of the head is a direct consequence of forces being exerted
 on the head, which can be gravity, but more commonly are the due to the
 muscles in the body, especially in the neck.
 
-The software is based on face recognition algorithms implemented in OpenCV
-(http://sourceforge.net/projects/opencvlibrary/). The bridge between the C-
-world of OpenCV and the Java world of Anvil is created by JavaCV
-(http://code.google.com/p/javacv/).
+The software is based on face recognition algorithms implemented in 
+OpenCV 3.1.0 (http://opencv.org).
 
 Installing the face tracker.
 ============================
 
-The installation has been tested on a PC with Windows 7 Enterprise, 64-bit and
-another PC with Windows XP SP3, 32-bit.
-
-The 32-bit face tracker runs in 32- and 64-bit Windows. The 64-bit facetracker
-runs only under 64-bit Windows. It is advised to choose the 64-bit face tracker
-if you have a 64-bit Windows, because it runs smoothest.
+The installation has been tested for Windows 7 Enterprise, 32-bit and 64-bit,
+and also Windows 8.1, 64-bit.
 
 Java needs to be installed. If you have plans to recompile the face tracker's
-source code, install jdk1.7.0_02 with the bitness of your choice if you have a
-64-bit architecture, otherwise choose the 32-bit version. A run-time only
-version of Java may work, but this has not been tested. The facetracker is
-compiled with jdk1.7.0_02, so you'll need a run-time compatible with that. If
-you have an older JDK, you can recompile the facetracker.
+source code, install the Java JDK. We have tested with versions 1.7.0_10 and
+with version 1.8.0_65.
 
-Download Anvil 5.0.23 from http://www.anvil-software.de/ and install the
-software. (Update: the face tracker also works with the newer version 
-Anvil 5.1)
+Download Anvil from http://www.anvil-software.de/ and install the software. 
+The face tracker has been tested with Anvil version 5.1.15.
 
-Copy the files in this distribution of the facetracker to the Anvil installation
-folder, taking care that the destination directory names match with the source
-directory names. There is a common folder anvil-plugin for both 32-bit and
-64-bit platforms and there are folders with 32-bit and 64-bit specific stuff:
-* batch files for compilation of the facetracker and for running Anvil with
-the facetracker
-* compressed archives containing OpenCV and JavaCV libraries. The relevant 
-compressed archive should be unpacked and its contents copied to (= merged with)
-the Anvil/required folder.
-* Microsoft redistributables
-
-Install the Microsoft redistributables. The installation file is called
-vcredist_x86 or vcredist_x64, depending on the architecture.
+Copy the files in this distribution of the facetracker to the Anvil 
+installation folder, taking care that the destination directory names match
+with the source directory names. The Microsoft redistributables in the folders 
+anvil-plugin-32-bit-specific and anvil-plugin-64-bit-specific may be necessary
+if your windows computer has no Visual Studio installed. This has not been
+tested. Try to run Anvil and the facetracker. If the program fails to start
+successfully, install the appropriate Microsoft redistributable. The 
+installation file is called vcredist_x86 or vcredist_x64, depending on the
+architecture.
 
 If you have both a 64-bit and a 32-bit Java, or if you have several
 Javas with different version numbers, it may be necessary to specify 
 the path to Java in the batch files for compiling and running. Open 
-the files COMPILE_FACETRACKER.BAT and ANVIL_FACETRACKER.BAT in an editor.
+the files COMPILE_ANVIL-5.1.1_FACETRACKER_OpenCV-3.1.0.BAT and
+ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-64bit.BAT (or
+ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-32bit.BAT) in an editor.
 (Right click | Edit). If you see a line starting with e.g. "jar", "javac"
 or "java", the system's path information is used to find these programs.
 You can specify the version of java by adding the full path, e.g.
 
-    "C:\Program Files (x86)\Java\jdk1.7.0_02\bin\java"
+    "C:\Program Files (x86)\Java\jdk1.7.0_10\bin\java"
 
 Necessary preparations from within the Anvil UI
 ===============================================
 
-Start Anvil by running the ANVIL_FACETRACKER batch file.
+Start Anvil by running the ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-64bit.BAT batch
+file, or ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-32bit.BAT if you are working in a
+32-bit Windows.
 
 Editing the Anvil spec file
 ---------------------------
@@ -109,11 +99,10 @@ be Timestamped Point.
 Add the face tracker plugin
 ---------------------------
 
-Now you need to tell Anvil that it has a plug-in. (The plug-in used to be
-detected automatically in older versions of Anvil.) Do the following:
+Now you need to tell Anvil that it has a plug-in. Do the following:
 
 1. Edit | Options ... | Plug-ins | add
-2. Choose a name for the face tracker
+2. Choose a name for the face tracker, e.g., "facetracker".
 3. In the next windows you are asked for the full class name of the plug-in
 class. Write
     FaceTrackerAnvilPlugin
@@ -124,8 +113,9 @@ A new window opens with face tracker controls.
 Running the face tracker
 ========================
 
-Start Anvil by running the ANVIL_FACETRACKER batch file. Next you need to
-open a movie and you need to activate the plugin, in either order.
+Start Anvil by running the ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-<nn>bit.BAT
+batch file. Next you need to open a video file and you need to activate the
+plugin, in either order.
 
 Activate the Facetracker plugin
 -------------------------------
@@ -134,8 +124,8 @@ Activate the Facetracker plugin
 * Press the OK button.
 * From the Tools menu, choose the facetracker.
 
-Opening a movie
----------------
+Opening a video file
+--------------------
  
 The next step is to open and prepare a movie for annotation of head movements:
 1. File | Open ... | <browse and open movie>
@@ -237,28 +227,25 @@ of the following list:
 
     eye
     eye_tree_eyeglasses
+    frontalcatface
+    frontalcatface_extended
     frontalface_alt
     frontalface_alt2
     frontalface_alt_tree
     frontalface_default
     fullbody
     lefteye_2splits
+    licence_plate_rus_16stages
     lowerbody
-    mcs_eyepair_big
-    mcs_eyepair_small
-    mcs_leftear
-    mcs_lefteye
-    mcs_mouth
-    mcs_nose
-    mcs_rightear
-    mcs_righteye
-    mcs_upperbody
     profileface
     righteye_2splits
+    russian_plate_number
+    smile
     upperbody
 
-As can be seen, in theory the face tracker can be used to track other bodily
-parts than faces as well. Not every Haar cascade is equally effective, though.
+
+As can be seen, in theory the face tracker can be used to track other things
+than human faces as well. Not every Haar cascade is equally effective, though.
 The default Haar cascade choice is haarcascade_frontalface_alt.xml, which also
 works for faces that are turned slightly away from frontal. If the face tracker
 cannot detect a face most of the time, it is advised to try several haar
@@ -269,31 +256,21 @@ files that are shown in the dialogue box.
 Sources
 =======
 
-Java jdk1.7.0_02
+Java JDK
 ----------------
 http://www.oracle.com/
 
 
-Anvil 5.0.23 or Anvil 5.1
+Anvil 5.1.15
 -------------------------
 http://www.anvil-software.de/
 
 
-OpenCV 2.3.1
+OpenCV 3.1.0
 ------------
-http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/OpenCV-2.3.1-win-superpack.exe/download
-After installation, libraries were copied from 
-	opencv2.3.1\build\x86\vc10\bin   (32 bit)
-	opencv2.3.1\build\x64\vc10\bin   (64 bit)
-to the required\extern\OpenCV folder under anvil
-
-
-JavaCV
-------
-http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20120218.zip&can=2&q=
-http://code.google.com/p/javacv/downloads/detail?name=javacv-src-20120218.zip&can=2&q=
-The files javacpp.jar, javacv.jar and javacv-windows-x86_64.jar found in
-javacv-bin are copied to the required\extern\OpenCV folder under anvil
+http://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.1.0/opencv-3.1.0.exe/download
+After installation, libraries were copied from opencv\build\java to the required\extern\OpenCV
+folder under anvil. The haarcascades were copied from opencv\sources\data\haarcascades.
 
 
 Microsoft Redistributables
@@ -302,4 +279,4 @@ http://www.microsoft.com/download/en/details.aspx?id=5555    (32 bit)
 http://www.microsoft.com/download/en/details.aspx?id=14632   (64 bit)
 
 
-Bart Jongejan 20120229
+Bart Jongejan 20160106
