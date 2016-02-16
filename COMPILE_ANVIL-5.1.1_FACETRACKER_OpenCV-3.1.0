@@ -1,0 +1,5 @@
+#rem Rem compile Anvil facetracker (64 bit)
+javac -classpath "%CLASSPATH%":required/Anvil.jar:required/extern/JMF/Crossplatform/jmf.jar:required/extern/OpenCV/opencv-310.jar  plugins/FaceTrackerAnvilPlugin.java
+cd plugins
+jar -cf FaceTrackerAnvilPlugin.jar *.class
+cd ..
