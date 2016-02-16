@@ -52,12 +52,33 @@ You can specify the version of java by adding the full path, e.g.
 
     "C:\Program Files (x86)\Java\jdk1.7.0_10\bin\java"
 
+Mac users
+---------
+Ignore the folder Anvil-Facetracker/required/extern/OpenCV, which is for 
+Microsoft Windows. Instead, copy the folder 
+
+    Anvil-Facetracker/required/extern/OpenCV-OSX
+    
+and rename it to
+
+    Anvil-Facetracker/required/extern/OpenCV
+
+Instead of the Windows batch files
+COMPILE_ANVIL-5.1.1_FACETRACKER_OpenCV-3.1.0.BAT and
+ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-64bit.BAT,
+
+use 
+
+COMPILE_ANVIL-5.1.1_FACETRACKER_OpenCV-3.1.0 and
+ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-64bit
+
+
 Necessary preparations from within the Anvil UI
 ===============================================
 
 Start Anvil by running the ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-64bit.BAT batch
 file, or ANVIL-5.1.1_FACETRACKER-OpenCV-3.1.0-32bit.BAT if you are working in a
-32-bit Windows.
+32-bit Windows. But see remark above if ANVIL is installed under OSX.
 
 Editing the Anvil spec file
 ---------------------------
