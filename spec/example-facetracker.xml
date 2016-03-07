@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+This specification introduces the concept of a TRACK.
+
+We create a single "primary" track with a single attribute.
+-->
+
+<annotation-spec>
+    <body>
+        <track-spec name="words" type="primary">
+            <attribute name="token" valuetype="String" />
+        </track-spec>
+        <track-spec name="faceVelocity" type="primary">
+            <attribute name="velocity" valuetype="TimestampedPoints">
+                <config-spatial>
+                    <connections color="red" size="3" transparency="0.7" type="arrow"/>
+                    <marker color="black" filled="false" numbering="false" size="5" transparency="0.7"/>
+                </config-spatial>
+            </attribute>
+        </track-spec>
+        <track-spec name="faceAcceleration" type="primary">
+            <attribute name="acceleration" valuetype="TimestampedPoints">
+                <config-spatial>
+                    <connections color="blue" size="3" transparency="0.7" type="arrow"/>
+                    <marker color="black" filled="false" numbering="false" size="5" transparency="0.7"/>
+                </config-spatial>
+            </attribute>
+        </track-spec>
+    </body>
+</annotation-spec>
+
