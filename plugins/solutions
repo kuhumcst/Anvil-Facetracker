@@ -1,150 +1,364 @@
 zeroth degree: a:position
 
+solution
 a.Sh*period^-1
 
 
 first degree: a:position, b:velocity
 
+solution
 a.period^-1*(Sh+-1*St*b)
 
-b.(-1*St^2+St2*period)^-1*(-1*Sh*St+Sth*period)
+solution
+b.(St^2+-1*St2*period)^-1*(Sh*St+-1*Sth*period)
 
 
 second degree: a:position, b:velocity c:acceleration
 
+solution
 a.period^-1*(Sh+-1*St*b+-1*St2*c)
 
+solution
   b
-.   (-1*St^2+St2*period)^-1
-  * (-1*Sh*St+St*St2*c+-1*St3*c*period+Sth*period)
+.   (St^2+-1*St2*period)^-1
+  * (Sh*St+-1*St*St2*c+St3*c*period+-1*Sth*period)
 
+solution
   c
-.     ( -1*St2^3
-      + 2*St*St2*St3
-      + St2*St4*period
-      + -1*St^2*St4
-      + -1*St3^2*period
+.     ( St2^3
+      + -2*St*St2*St3
+      + -1*St2*St4*period
+      + St^2*St4
+      + St3^2*period
       )
     ^ -1
-  * ( -1*Sh*St2^2
-    + Sh*St*St3
-    + St*St2*Sth
-    + St2*St2h*period
-    + -1*St3*Sth*period
-    + -1*St^2*St2h
+  * ( Sh*St2^2
+    + -1*Sh*St*St3
+    + -1*St*St2*Sth
+    + -1*St2*St2h*period
+    + St3*Sth*period
+    + St^2*St2h
     )
 
 
-third degree: a:position b:velocity c:acceleration d:change of acceleration
+third degree: a:position b:velocity c:acceleration d:jerk
 
-a.period^-1*(Sh+-1*St*b+-1*St2*c+-1*St3*d)
+solution
+a.-1*period^-1*(St2*c+St3*d)
 
-  b
-.   (-1*St^2+St2*period)^-1
-  * ( -1*Sh*St
-    + St*St2*c
-    + St*St3*d
-    + -1*St3*c*period
-    + -1*St4*d*period
-    + Sth*period
-    )
+solution
+b.St2^-1*(Sth+-1*St3*c+-1*St4*d)
 
+solution
   c
-.     ( -1*St2^3
-      + 2*St*St2*St3
-      + St2*St4*period
-      + -1*St^2*St4
-      + -1*St3^2*period
-      )
-    ^ -1
-  * ( -1*Sh*St2^2
-    + Sh*St*St3
-    + St*St2*Sth
-    + -1*St*St2*St4*d
-    + -1*St*St3^2*d
-    + St2*St2h*period
+.   -1
+  * (St2^3+-1*St2*St4*period+St3^2*period)^-1
+  * ( St2*St2h*period
     + -1*St2*St5*d*period
     + St3*St4*d*period
     + -1*St3*Sth*period
-    + -1*St^2*St2h
-    + St^2*St5*d
     + St2^2*St3*d
     )
 
+solution
   d
-.   period^-1
-  * ( -1*Sh*St*St2*St3*St5*period^2
-    + Sh*St*St2*St4^2*period^2
-    + Sh*St2*St3^3*period^2
-    + 2*Sh*St^2*St2*St3*St4*period
-    + -1*Sh*St^2*St2^2*St5*period
-    + -1*Sh*St^2*St3^3*period
-    + Sh*St^3*St3*St5*period
-    + -1*Sh*St^3*St4^2*period
-    + -2*Sh*St2^2*St3*St4*period^2
-    + Sh*St2^3*St5*period^2
-    + -1*St*St2*St2h*St3^2*period^2
-    + St*St2*St3*St4*Sth*period^2
-    + -1*St*St2^2*St2h*St4*period^2
-    + 2*St*St2^2*St3*St3h*period^2
-    + -1*St*St2^2*St5*Sth*period^2
-    + St2*St2h*St3*St4*period^3
-    + St2*St3*St5*Sth*period^3
-    + -1*St2*St3^2*St3h*period^3
-    + -1*St2*St4^2*Sth*period^3
-    + 2*St^2*St2*St2h*St5*period^2
-    + -2*St^2*St2*St3h*St4*period^2
-    + St^2*St2*St3^2*Sth*period
-    + -1*St^2*St2h*St3*St4*period^2
-    + -1*St^2*St3*St5*Sth*period^2
-    + -1*St^2*St2^2*St2h*St3*period
-    + -1*St^2*St2^2*St4*Sth*period
-    + St^2*St2^3*St3h*period
-    + St^2*St3^2*St3h*period^2
-    + St^2*St4^2*Sth*period^2
-    + St^3*St2*St2h*St4*period
-    + -2*St^3*St2*St3*St3h*period
-    + St^3*St2*St5*Sth*period
-    + St^3*St2h*St3^2*period
-    + -1*St^3*St3*St4*Sth*period
-    + -1*St^4*St2h*St5*period
-    + St^4*St3h*St4*period
-    + -1*St2^2*St2h*St5*period^3
-    + St2^2*St3h*St4*period^3
-    + -1*St2^2*St3^2*Sth*period^2
-    + St2^3*St2h*St3*period^2
-    + St2^3*St4*Sth*period^2
-    + -1*St2^4*St3h*period^2
+.   -1
+  *   ( St3^4
+      + St2*St4*St6*period
+      + -3*St2*St3^2*St4
+      + -1*St2*St5^2*period
+      + 2*St3*St4*St5*period
+      + St2^2*St4^2
+      + 2*St2^2*St3*St5
+      + -1*St2^3*St6
+      + -1*St3^2*St6*period
+      + -1*St4^3*period
+      )
+    ^ -1
+  * ( St2*St2h*St5*period
+    + -1*St2*St3h*St4*period
+    + St2*St3^2*Sth
+    + -1*St2h*St3*St4*period
+    + -1*St3*St5*Sth*period
+    + -1*St2^2*St2h*St3
+    + -1*St2^2*St4*Sth
+    + St2^3*St3h
+    + St3^2*St3h*period
+    + St4^2*Sth*period
     )
-  *   ( 2*St*St2*St3*St4^2*period
-      + -2*St*St2*St3^2*St5*period
-      + 2*St*St2^2*St3*St6*period
-      + -2*St*St2^2*St4*St5*period
-      + 2*St2*St3*St4*St5*period^2
-      + -1*St2*St3^2*St6*period^2
-      + St2*St3^4*period
-      + -1*St2*St4^3*period^2
-      + -1*St^2*St3^4
-      + -2*St^2*St2*St4*St6*period
-      + 3*St^2*St2*St3^2*St4
-      + 2*St^2*St2*St5^2*period
-      + -2*St^2*St3*St4*St5*period
-      + -1*St^2*St2^2*St4^2
-      + -2*St^2*St2^2*St3*St5
-      + St^2*St2^3*St6
-      + St^2*St3^2*St6*period
-      + St^2*St4^3*period
-      + -2*St^3*St2*St3*St6
-      + 2*St^3*St2*St4*St5
-      + -2*St^3*St3*St4^2
-      + 2*St^3*St3^2*St5
-      + -1*St^4*St5^2
-      + St^4*St4*St6
-      + St2^2*St4*St6*period^2
-      + -3*St2^2*St3^2*St4*period
-      + -1*St2^2*St5^2*period^2
-      + 2*St2^3*St3*St5*period
-      + St2^3*St4^2*period
-      + -1*St2^4*St6*period
+
+
+fourth degree: a:position b:velocity c:acceleration d:jerk e:jounce
+
+solution
+a.-1*period^-1*(St2*c+St3*d+e*St4)
+
+solution
+b.St2^-1*(Sth+-1*St3*c+-1*St4*d+-1*e*St5)
+
+solution
+  c
+.   -1
+  * (St2^3+-1*St2*St4*period+St3^2*period)^-1
+  * ( St2*St2h*period
+    + -1*St2*St5*d*period
+    + St3*St4*d*period
+    + -1*St3*Sth*period
+    + -1*e*St2*St6*period
+    + e*St3*St5*period
+    + e*St2^2*St4
+    + St2^2*St3*d
+    )
+
+solution
+  d
+.   -1
+  *   ( St3^4
+      + St2*St4*St6*period
+      + -3*St2*St3^2*St4
+      + -1*St2*St5^2*period
+      + 2*St3*St4*St5*period
+      + St2^2*St4^2
+      + 2*St2^2*St3*St5
+      + -1*St2^3*St6
+      + -1*St3^2*St6*period
+      + -1*St4^3*period
+      )
+    ^ -1
+  * ( St2*St2h*St5*period
+    + -1*St2*St3h*St4*period
+    + St2*St3^2*Sth
+    + -1*St2h*St3*St4*period
+    + -1*St3*St5*Sth*period
+    + -2*e*St2*St3*St4^2
+    + e*St2*St4*St7*period
+    + -1*e*St2*St5*St6*period
+    + -1*e*St2*St3^2*St5
+    + e*St3*St4*St6*period
+    + e*St3*St5^2*period
+    + e*St2^2*St3*St6
+    + 2*e*St2^2*St4*St5
+    + -1*e*St2^3*St7
+    + -1*e*St3^2*St7*period
+    + e*St3^3*St4
+    + -1*e*St4^2*St5*period
+    + -1*St2^2*St2h*St3
+    + -1*St2^2*St4*Sth
+    + St2^3*St3h
+    + St3^2*St3h*period
+    + St4^2*Sth*period
+    )
+
+solution
+  e
+.   1/2
+  * ( St2*St2h*St3*St4*St5*St6*period^2
+    + -1*St2*St2h*St3*St4^2*St7*period^2
+    + -1*St2*St2h*St3^2*St5*St7*period^2
+    + 2*St2*St2h*St3^2*St4^3*period
+    + St2*St2h*St3^2*St6^2*period^2
+    + -1*St2*St2h*St3^3*St4*St5*period
+    + -1*St2*St2h*St3^4*St6*period
+    + -1*St2*St2h*St4^2*St5^2*period^2
+    + St2*St2h*St4^3*St6*period^2
+    + -1*St2*St3*St3h*St4*St5^2*period^2
+    + -1*St2*St3*St3h*St4^2*St6*period^2
+    + -1*St2*St3*St4*St5*St7*Sth*period^2
+    + St2*St3*St4*St6^2*Sth*period^2
+    + 2*St2*St3*St4^2*St4h*St5*period^2
+    + -1*St2*St3*St4^4*Sth*period
+    + St2*St3h*St4^3*St5*period^2
+    + St2*St4*St5^3*Sth*period^2
+    + 2*St2*St3^2*St3h*St4*St7*period^2
+    + -1*St2*St3^2*St3h*St5*St6*period^2
+    + -2*St2*St3^2*St4*St4h*St6*period^2
+    + St2*St3^2*St4h*St5^2*period^2
+    + St2*St3^2*St4^2*St5*Sth*period
+    + -3*St2*St3^3*St3h*St4^2*period
+    + -1*St2*St3^3*St4*St6*Sth*period
+    + 2*St2*St3^3*St5^2*Sth*period
+    + -1*St2*St3^4*St3h*St5*period
+    + 4*St2*St3^4*St4*St4h*period
+    + -1*St2*St3^4*St7*Sth*period
+    + -2*St2*St4^2*St5*St6*Sth*period^2
+    + St2*St4^3*St7*Sth*period^2
+    + -1*St2*St4^4*St4h*period^2
+    + St2h*St3^2*St4*St5^2*period^2
+    + -1*St2h*St3^2*St4^2*St6*period^2
+    + St2h*St3^3*St4*St7*period^2
+    + -1*St2h*St3^3*St5*St6*period^2
+    + -1*St2h*St3^4*St4^2*period
+    + St2h*St3^5*St5*period
+    + St2^2*St2h*St4*St5*St7*period^2
+    + -1*St2^2*St2h*St4*St6^2*period^2
+    + St2^2*St2h*St3^3*St7*period
+    + -1*St2^2*St2h*St4^4*period
+    + 2*St2^2*St3*St3h*St4^3*period
+    + -2*St2^2*St3*St4*St5^2*Sth*period
+    + St2^2*St3h*St4*St5*St6*period^2
+    + -1*St2^2*St3h*St4^2*St7*period^2
+    + -1*St2^2*St4*St4h*St5^2*period^2
+    + 3*St2^2*St3^2*St3h*St4*St5*period
+    + 2*St2^2*St3^2*St4*St7*Sth*period
+    + -1*St2^2*St3^2*St5*St6*Sth*period
+    + -4*St2^2*St3^2*St4^2*St4h*period
+    + St2^2*St3^3*St3h*St6*period
+    + -2*St2^2*St3^3*St4h*St5*period
+    + St2^2*St4^2*St4h*St6*period^2
+    + St2^2*St4^3*St5*Sth*period
+    + -1*St2^3*St2h*St3*St5*St6*period
+    + St2^3*St2h*St4*St5^2*period
+    + -1*St2^3*St2h*St3^2*St4^2
+    + St2^3*St2h*St3^3*St5
+    + St2^3*St3*St3h*St5^2*period
+    + St2^3*St3*St5*St7*Sth*period
+    + St2^3*St3*St4^3*Sth
+    + -1*St2^3*St3*St6^2*Sth*period
+    + -3*St2^3*St3h*St4^2*St5*period
+    + 3*St2^3*St4*St5*St6*Sth*period
+    + -2*St2^3*St3^2*St3h*St7*period
+    + -2*St2^3*St3^2*St4*St5*Sth
+    + 2*St2^3*St3^2*St4h*St6*period
+    + St2^3*St3^3*St3h*St4
+    + St2^3*St3^3*St6*Sth
+    + -1*St2^3*St3^4*St4h
+    + -2*St2^3*St4^2*St7*Sth*period
+    + 2*St2^3*St4^3*St4h*period
+    + -1*St2^3*St5^3*Sth*period
+    + St2^4*St2h*St4^3
+    + -1*St2^4*St2h*St5*St7*period
+    + -1*St2^4*St2h*St3^2*St6
+    + St2^4*St2h*St6^2*period
+    + -2*St2^4*St3*St3h*St4^2
+    + 2*St2^4*St3*St5^2*Sth
+    + 2*St2^4*St3h*St4*St7*period
+    + -1*St2^4*St3h*St5*St6*period
+    + -2*St2^4*St4*St4h*St6*period
+    + St2^4*St4h*St5^2*period
+    + -1*St2^4*St3^2*St3h*St5
+    + 3*St2^4*St3^2*St4*St4h
+    + -1*St2^4*St3^2*St7*Sth
+    + -1*St2^4*St4^2*St5*Sth
+    + St2^5*St2h*St3*St7
+    + -1*St2^5*St2h*St4*St6
+    + St2^5*St3*St3h*St6
+    + -2*St2^5*St3*St4h*St5
+    + 2*St2^5*St3h*St4*St5
+    + St2^5*St4*St7*Sth
+    + -1*St2^5*St5*St6*Sth
+    + -1*St2^5*St4^2*St4h
+    + -1*St2^6*St3h*St7
+    + St2^6*St4h*St6
+    + -1*St3^2*St3h*St4^2*St5*period^2
+    + 2*St3^2*St4*St5*St6*Sth*period^2
+    + -1*St3^2*St4^2*St7*Sth*period^2
+    + St3^2*St4^3*St4h*period^2
+    + -1*St3^2*St5^3*Sth*period^2
+    + St3^3*St3h*St4*St6*period^2
+    + St3^3*St3h*St5^2*period^2
+    + -2*St3^3*St4*St4h*St5*period^2
+    + St3^3*St5*St7*Sth*period^2
+    + St3^3*St4^3*Sth*period
+    + -1*St3^3*St6^2*Sth*period^2
+    + -1*St3^4*St3h*St7*period^2
+    + -2*St3^4*St4*St5*Sth*period
+    + St3^4*St4h*St6*period^2
+    + St3^5*St3h*St4*period
+    + St3^5*St6*Sth*period
+    + -1*St3^6*St4h*period
+    )
+  *   ( St2*St3*St4*St5*St6^2*period^2
+      + -1*St2*St3*St4*St5^2*St7*period^2
+      + St2*St3*St4^2*St5*St8*period^2
+      + -1*St2*St3*St4^2*St6*St7*period^2
+      + -2*St2*St3*St4^4*St5*period
+      + 1/2*St2*St4*St5^4*period^2
+      + -1*St2*St3^2*St4*St6*St8*period^2
+      + St2*St3^2*St4*St7^2*period^2
+      + -1*St2*St3^2*St5*St6*St7*period^2
+      + 3*St2*St3^2*St4^3*St6*period
+      + 1/2*St2*St3^2*St5^2*St8*period^2
+      + 1/2*St2*St3^2*St6^3*period^2
+      + -3*St2*St3^3*St4^2*St7*period
+      + St2*St3^3*St5^3*period
+      + 2*St2*St3^4*St4*St8*period
+      + -1*St2*St3^4*St5*St7*period
+      + -1/2*St2*St3^4*St6^2*period
+      + -3/2*St2*St4^2*St5^2*St6*period^2
+      + St2*St4^3*St5*St7*period^2
+      + 1/2*St2*St4^3*St6^2*period^2
+      + -1/2*St2*St4^4*St8*period^2
+      + 1/2*St2*St4^6*period
+      + -1*St2^2*St3*St4*St5^3*period
+      + -1*St2^2*St3*St4^2*St5*St6*period
+      + 2*St2^2*St3*St4^3*St7*period
+      + St2^2*St4*St5*St6*St7*period^2
+      + -1/2*St2^2*St4*St5^2*St8*period^2
+      + -1/2*St2^2*St4*St6^3*period^2
+      + 3*St2^2*St3^2*St4*St5*St7*period
+      + -1/2*St2^2*St3^2*St4*St6^2*period
+      + -2*St2^2*St3^2*St4^2*St8*period
+      + -1/2*St2^2*St3^2*St5^2*St6*period
+      + -1*St2^2*St3^3*St5*St8*period
+      + St2^2*St3^3*St6*St7*period
+      + 1/2*St2^2*St4^2*St6*St8*period^2
+      + -1/2*St2^2*St4^2*St7^2*period^2
+      + 3/2*St2^2*St4^3*St5^2*period
+      + -3/2*St2^2*St4^4*St6*period
+      + -1/2*St2^3*St4^5
+      + -1*St2^3*St3*St5*St6^2*period
+      + 2*St2^3*St3*St4^3*St5
+      + St2^3*St3*St5^2*St7*period
+      + 2*St2^3*St4*St5^2*St6*period
+      + -3/2*St2^3*St3^2*St4*St5^2
+      + St2^3*St3^2*St6*St8*period
+      + -3/2*St2^3*St3^2*St4^2*St6
+      + -1*St2^3*St3^2*St7^2*period
+      + St2^3*St3^3*St4*St7
+      + St2^3*St3^3*St5*St6
+      + -1/2*St2^3*St3^4*St8
+      + -3*St2^3*St4^2*St5*St7*period
+      + 1/2*St2^3*St4^2*St6^2*period
+      + St2^3*St4^3*St8*period
+      + -1/2*St2^3*St5^4*period
+      + St2^4*St3*St5^3
+      + St2^4*St3*St4*St5*St6
+      + -2*St2^4*St3*St4^2*St7
+      + -1*St2^4*St4*St6*St8*period
+      + St2^4*St4*St7^2*period
+      + -1*St2^4*St5*St6*St7*period
+      + -1/2*St2^4*St3^2*St6^2
+      + 3/2*St2^4*St3^2*St4*St8
+      + -1*St2^4*St3^2*St5*St7
+      + -3/2*St2^4*St4^2*St5^2
+      + 3/2*St2^4*St4^3*St6
+      + 1/2*St2^4*St5^2*St8*period
+      + 1/2*St2^4*St6^3*period
+      + -1*St2^5*St3*St5*St8
+      + St2^5*St3*St6*St7
+      + -1*St2^5*St4*St6^2
+      + 2*St2^5*St4*St5*St7
+      + -1/2*St2^5*St4^2*St8
+      + -1/2*St2^5*St5^2*St6
+      + -1/2*St2^6*St7^2
+      + 1/2*St2^6*St6*St8
+      + 3/2*St3^2*St4*St5^2*St6*period^2
+      + -1*St3^2*St4^2*St5*St7*period^2
+      + -1/2*St3^2*St4^2*St6^2*period^2
+      + 1/2*St3^2*St4^3*St8*period^2
+      + -1/2*St3^2*St4^5*period
+      + -1/2*St3^2*St5^4*period^2
+      + -1*St3^3*St4*St5*St8*period^2
+      + St3^3*St4*St6*St7*period^2
+      + -1*St3^3*St5*St6^2*period^2
+      + 2*St3^3*St4^3*St5*period
+      + St3^3*St5^2*St7*period^2
+      + -3/2*St3^4*St4*St5^2*period
+      + 1/2*St3^4*St6*St8*period^2
+      + -3/2*St3^4*St4^2*St6*period
+      + -1/2*St3^4*St7^2*period^2
+      + St3^5*St4*St7*period
+      + St3^5*St5*St6*period
+      + -1/2*St3^6*St8*period
       )
     ^ -1

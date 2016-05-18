@@ -3,93 +3,560 @@
 Compute formulas for least square approximation to second and third degree
 equations.
 
-This is Bracmat code. (https://github.com/BartJongejan/Bracmat)}
+This is Bracmat code. (http://cst.dk/download/bracmat)}
 
 solver=
   ( solve
   =     vars exps var A Z a b c d
       , solution deps nondeps nondep
-    .   !arg:(?vars.?exps)
-      & !vars:%?var ?vars
-      & !exps:?A ?a+?b*!var*?c+?d ?Z
-      & !A !Z:?exps
-      & !b*!c:?deps
-      & !a:?nondeps
-      &   whl
-        ' ( !d:?nondep+?b*!var*?c+?d
-          & !nondep+!nondeps:?nondeps
-          & !b*!c+!deps:?deps
-          )
-      & !d+!nondeps:?nondeps
-      & ( factorize
-        =   a b n c A C T S
-          .     !arg:?a+?*?b^-1*?+?c
-              & !a+!c:%
+      , economize factorizeDivisorsOut
+      , observable
+    .   ( factorizeDivisorsOut
+        =   a b n c A C T S e
+          .     !arg:?a+?*?b^(<0:?e)*?+?c
+              & !a+!c:~0
               & 0:?S
               &   whl
                 ' ( !arg:%?T+?arg
                   &     !S
                       + (   !T:?A*!b^?n*?C
-                          & !A*!b^(!n+1)*!C
+                          & !A*!b^(!n+-1*!e)*!C
                         | !T*!b
                         )
                     : ?S
                   )
-              & !b^-1*factorize$!S
+              & !b^!e*factorizeDivisorsOut$!S
             | !arg
         )
-      &   (!var.factorize$(1+-1*!nondeps+-1)*factorize$!deps^-1)
-        : ?solution
-      & put$(\n,solutions,APP)
-      & put$(!solution,solutions,APP)
-      & put$(\n,solutions,APP)
-      & (   !exps:%
-          & sub$(!exps.!solution):?exps
-          & (its.solve)$(!vars.!exps)
-        | 
+      & ( economize
+        =     eco A B L
+            , allFactors
+            , partialFac removeNumbers unfactor
+            , C D Factored H kaal
+          .   ( allFactors
+              =   L X
+                .   :?L
+                  & (   !arg
+                      :   ?
+                        +   ?
+                          * ( (%@|%@^?):~-1:?X
+                            & ( !L:? !X ?
+                              | !X !L:?L
+                              )
+                            )
+                          * (?&~)
+                        + ?
+                    | !L
+                    )
+              )
+            & ( removeNumbers
+              =   A B
+                .   !arg:#%*?arg&!arg
+                  |   !arg:?A_?B
+                    & (removeNumbers$!A)_(removeNumbers$!B)
+                  | !arg
+              )
+            & ( partialFac
+              =     L l A B C X Y Z I
+                  , Gmin Factored g F f J K
+                  , ii ff ig if lx exp
+                .   !arg:(?L.?arg)
+                  & (   !arg:?+%*%+?+%*%+?:?Factored
+                      & 0:?Gmin
+                      & (   !L
+                          :   ?A
+                              %?`l
+                              ( ?Z
+                              & 0:?I
+                              & !arg:?F
+                              & :?lx
+                              & (     whl
+                                    ' (   !F
+                                        : ?B+?C*!l^(~/#?exp:>1)*?X+?Y
+                                      & !B+!Y:?F
+                                      & !C*!l^(!exp+-1)*!X+!I:?I
+                                      )
+                                  & !I:0
+                                | !l:?lx
+                                )
+                              &   whl
+                                ' ( !F:?B+?C*!l*?X+?Y
+                                  & !B+!Y:?F
+                                  & !C*!X+!I:?I
+                                  )
+                              &   (   !I:0
+                                    & ( nof
+                                      =   a b
+                                        .     !arg:%@^(~/#>1:?b)
+                                            & !b+-1
+                                          |   !arg:%?a+%?b
+                                            & nof$!a+nof$!b
+                                          |   !arg:%?a*%?b
+                                            & 1+nof$!a+nof$!b
+                                          | 0
+                                      )
+                                    & (nof$!F.!F)
+                                  |       1
+                                        + (     partialFac
+                                              $ (!A !lx !Z.!I)
+                                            : (?ig.?ii)
+                                          & !ig
+                                          )
+                                        + (   partialFac$(!A !Z.!F)
+                                            : (?if.?ff)
+                                          & !if
+                                          )
+                                      : ?g
+                                    & ( !g
+                                      .   (   !ii:%+%
+                                            & (!l,fct$!ii)
+                                          | !l*!ii
+                                          )
+                                        + !ff
+                                      )
+                                  )
+                                : (?g.?f)
+                              & (   !Gmin:(~>0|>!g)
+                                  & !g:?Gmin
+                                  & !f:?Factored
+                                | 
+                                )
+                              & ~
+                              )
+                        | 
+                        )
+                      & (!Gmin.!Factored)
+                    |   !arg:?F
+                      & 0:?g
+                      &   whl
+                        ' ( !F:?+%*%?J+?K
+                          & 1+!g:?g
+                          & !J+!K:?F
+                          )
+                      & (!g.!arg)
+                    )
+              )
+            & out$(economize !arg)
+            & !arg:(?caller.?arg)
+            &   (   !arg:%?A*%?B
+                  & economize$(AAA.!A)*economize$(BBB.!B)
+                |   !arg:?A^%?B
+                  & economize$(CCC.!A)^economize$(DDD.!B)
+                |   ( unfactor
+                    =   f g
+                      .     !arg:%?f*%?g
+                          & unfactor$!f*unfactor$!g
+                        |   !arg:%?f+%?g
+                          & unfactor$!f+unfactor$!g
+                        |   !arg:(%?f,%?g)
+                          & unfactor$!f*unfactor$!g
+                        | !arg
+                    )
+                  & !arg:%+%
+                  & (   removeNumbers$!arg:%+%:?kaal
+                      & ( allFactors$!kaal:?L
+                        | out$ERRRB&get'
+                        )
+                      &   whl
+                        ' ( !L:?A ?B^% ?C
+                          & !A !B !C:?L
+                          )
+                      &   whl
+                        ' ( !L:?A %?`B ?C !B ?D
+                          & !A !B !C !D:?L
+                          )
+                      & out$(allFactors !L)
+                      & ( partialFac$(!L.!arg):(?H.?Factored)
+                        | out$ERRRC&get'
+                        )
+                      & out$(H !H)
+                    |   out$ERRRA
+                      & get'
+                      & out$(ARG !arg)
+                      & get'
+                      & !arg:?Factored
+                    )
+                  & (   unfactor$!Factored:!arg
+                      & out$(Factored !Factored)
+                    |     out
+                        $ (ERROR unfactored unfactor$!Factored arg !arg)
+                      & get'
+                    )
+                  & !Factored
+                | !arg
+                )
+              : ?eco
+            & !eco
         )
+      & ( fractionsOut
+        =   a b f g
+          .     !arg:%?a*%?b
+              & fractionsOut$!a*fractionsOut$!b
+            |   !arg:%?a^%?b
+              & fractionsOut$!a^fractionsOut$!b
+            |   !arg:(%?a,%?b)
+              &   fractionsOut$!a
+                : (#%?g*?a|?a&1:?g)
+              &   fractionsOut$!b
+                : (#%?f*?b|?b&1:?f)
+              & !f*!g*(!a,!b)
+            |   !arg:%?a+%?b
+              & fractionsOut$!a+fractionsOut$!b:?arg
+              & 1:?f
+              &   whl
+                ' ( !arg:?+/%?a*?+?
+                  & den$!a:?a
+                  & !f*!a^-1:?f
+                  & 1+!arg*!a+-1:?arg
+                  )
+              & !f*!arg
+            | !arg
+        )
+      & ( delveNumericalFactors
+        =   A B C
+          .   (   !arg:%?A_%?B
+                &   (delveNumericalFactors$!A)_(delveNumericalFactors$!B)
+                  : ?arg
+              | 
+              )
+            & (   !arg:%+%
+                & fractionsOut$(fct$!arg):?arg
+              | 
+              )
+            & (   !arg:(?A,?B)
+                &   whl
+                  ' ( !B:%(~(%+%):?C)*?B
+                    & !A*!C:?A
+                    )
+                &   (!B:1&!A|(!A,!B))
+                  : ?arg
+              | 
+              )
+            & (   !arg:%?A*(?B,?C)
+                & (!A*!B,!C):?arg
+              | 
+              )
+            & !arg
+        )
+      & ( comms
+        =   subexpressions common nnn A B M var
+          .   ( common
+              =   a b
+                .     !arg:%?a_%?b
+                    & out$!arg
+                    & (.!arg)+!subexpressions:?subexpressions
+                    & common$!a
+                    & common$!b
+                  | 
+              )
+            & 0:?subexpressions:?nnn
+            & common$!arg
+            &   whl
+              ' ( !subexpressions:?A+(.?)+?B
+                & !A+!B:?subexpressions
+                )
+            & 0:?var
+            &   whl
+              ' ( !subexpressions:?A+#*(.?M)+?B
+                &   !A+(str$(var (1+!var:?var)).!M)+!B
+                  : ?subexpressions
+                )
+            & !subexpressions
+        )
+      & ( subst
+        =   a b M subexpressions
+          .     !arg:(%?a_%?b.?subexpressions)
+              & (   !subexpressions:?+(?M.!a)+?
+                  & !M:?a
+                  & !M+!VARS:?VARS
+                | 
+                )
+              & (   !subexpressions:?+(?M.!b)+?
+                  & !M:?b
+                  & !M+!VARS:?VARS
+                | 
+                )
+              &   (subst$(!a.!subexpressions))
+                _ (subst$(!b.!subexpressions))
+            | !arg:(?arg.?)&!arg
+        )
+      & (deep=.!arg:-1|!arg+1)
+      & ( indent
+        =   sp
+          .   :?sp
+            &   whl
+              ' ( !ind+-1:~<0:?ind
+                & "  " !sp:?sp
+                )
+            & (!ind:>-1&\n|) !sp
+            & 
+        )
+      & ( power
+        =   R a b
+          .   !arg:(?a.?b)
+            & !a:?R
+            &   whl
+              ' ( !b+-1:>0:?b
+                & !R "*" !a:?R
+                )
+            & str$!R
+        )
+      & ( paren
+        =   a
+          .     !arg:(?arg.?a)
+              & !arg:%+%
+              & "(" !a ")"
+            | !a
+        )
+      & ( translate
+        =   a b c ind
+          .   !arg:(?arg.?ind)
+            & (   !arg:(%?a*%?b|(?a,?b))
+                &   paren$(!a.translate$(!a.deep$!ind))
+                    indent$!ind
+                    "*"
+                    paren$(!b.translate$(!b.deep$!ind))
+              |   !arg:%?a^%?b
+                & (   !b:<0
+                    & (   !b:-1
+                        &   indent$!ind
+                            "1.0/("
+                            translate$(!a.!ind)
+                            indent$!ind
+                            ")"
+                            \n
+                      |   indent$!ind
+                          "1.0/("
+                          power$(translate$(!a.!ind).-1*!b)
+                          ")"
+                          \n
+                      )
+                  | power$(translate$(!a.!ind).!b)
+                  )
+              |   !arg:%?a+%?b
+                &   translate$(!a.deep$!ind)
+                    "+"
+                    translate$(!b.deep$!ind)
+              | !arg:#&jsn$!arg
+              | indent$!ind !arg
+              )
+        )
+      & ( 2Java
+        =     VarSubstitutedOptimizedSolutions
+            , vars exps var exps java
+            , Parms parameters lasts last
+          .   ( parms
+              =   a b
+                .   !arg:?a_?b&parms$!a+parms$!b
+                  | !arg:#&0
+                  | !vars:? !arg ?&0
+                  | !arg
+              )
+            &   !arg
+              : (?var.?VarSubstitutedOptimizedSolutions,(?.?vars.?exps))
+            & parms$!exps:?Parms
+            & :?parameters
+            &   whl
+              ' ( !Parms:?Parms+?*%@?last
+                &     "double "
+                      !last
+                      (!parameters:|", ")
+                      !parameters
+                  : ?parameters
+                )
+            &     str
+                $ ("private double " !var "(" !parameters ")" \n "    {" \n)
+              : ?java
+            &   !VarSubstitutedOptimizedSolutions
+              : (?.?.?variables.?Formula)
+            &   whl
+              ' ( !variables:(?name.?formula) ?variables
+                &     !java
+                      "    double "
+                      !name
+                      " = "
+                      translate$(!formula.-1)
+                      ";"
+                      \n
+                  : ?java
+                )
+            &   !java \n "return " translate$(!Formula.0) ";\n" "    }"
+              : ?java
+            & str$!java
+        )
+      & !arg:(?observable.?vars.?exps)
+      & out$(SOLVE !arg)
+      & :?Solutions
+      &   whl
+        ' ( !vars:%?var ?vars
+          & !exps:?A ?a+?b*!var*?c+?d ?Z
+          & out$("Expression 0=" !a+!b*!var*!c+!d)
+          & !A !Z:?exps
+          & !b*!c:?deps
+          & !a:?nondeps
+          &   whl
+            ' ( !d:?nondep+?b*!var*?c+?d
+              & !nondep+!nondeps:?nondeps
+              & !b*!c+!deps:?deps
+              )
+          & !d+!nondeps:?nondeps
+          & out$(nondeps !nondeps)
+          & out$(deps !deps)
+          &   ( !var
+              .   fct
+                $ ( factorizeDivisorsOut$(1+-1*!nondeps+-1)
+                  * factorizeDivisorsOut$!deps^-1
+                  )
+              )
+            : ?solution
+          & !solution !Solutions:?Solutions
+          & put$(\nsolution\n,solutions,APP)
+          & put$(!solution,solutions,APP)
+          & put$(\n,solutions,APP)
+          & sub$(!exps.!solution):?exps
+          )
+      & lst$(Solutions,"Solutions.bra",APP)
+      & ( ~&get'OptimizedSolutionsOK
+        |   :?OptimizedSolutions
+          &   whl
+            ' ( !Solutions:(?var.?solution) ?Solutions
+              & out$(!solution tobeeconomized)
+              & out$(economizing !var)
+              & economize$(XXX.!solution):?OptimizedSolution
+              & out$(subexpressions !subexpressions)
+              &   (!var.!OptimizedSolution) !OptimizedSolutions
+                : ?OptimizedSolutions
+              & 
+              )
+          & lst$(OptimizedSolutions,OptimizedSolutions,APP)
+        )
+      & :?VarSubstitutedOptimizedSolutions
+      &   whl
+        ' (   !OptimizedSolutions
+            : ?OptimizedSolutions (?var.?OptimizedSolution)
+          & comms$!OptimizedSolution:?subexpressions
+          & lst$(subexpressions,subexpressions,APP)
+          & 0:?VARS
+          & subst$(!OptimizedSolution.!subexpressions):?FactorExpr
+          & lst$(VARS,VARS,APP)
+          & :?where
+          &   whl
+            ' ( !VARS:?*%@?VAR+?VARS
+              & !subexpressions:?+(!VAR.?M)+?
+              & !where (!VAR.!M):?where
+              )
+          & lst$(where,where,APP)
+          & lst$(FactorExpr,FactorExpr,NEW)
+          & delveNumericalFactors$!FactorExpr:?FactorExpr
+          & lst$(FactorExpr,FactorExpr,APP)
+          &     (!var.!OptimizedSolution.!where.!FactorExpr)
+                !VarSubstitutedOptimizedSolutions
+            : ?VarSubstitutedOptimizedSolutions
+          &   put
+            $ (   2Java
+                $ ( !observable "_" !var
+                  . !VarSubstitutedOptimizedSolutions,!arg
+                  )
+              , str$(!observable "_" !var ".java")
+              , NEW
+              )
+          & 
+          )
+      &   lst
+        $ ( VarSubstitutedOptimizedSolutions
+          , VarSubstitutedOptimizedSolutions
+          , APP
+          )
   )
   ( new
   =   
-    .   put$("zeroth degree: a:position
+    .   ~
+      |   put$(,OptimizedSolutions,NEW)
+        & put$(,VarSubstitutedOptimizedSolutions,NEW)
+        & put$(,subexpressions,NEW)
+        & put$(,VARS,NEW)
+        & put$(,where,NEW)
+        & put$(,"Solutions.bra",NEW)
+        & put$("zeroth degree: a:position
 ",solutions,NEW)
-      & (its.solve)$(a.period*a+-1*Sh)
-      & put$("
+        & (its.solve)$(position.a.period*a+-1*Sh)
+        & put$("
 
 first degree: a:position, b:velocity
 ",solutions,APP)
-      &   (its.solve)
-        $ ( a b
-          . period*a+St*b+-1*Sh St*a+St2*b+-1*Sth
-          )
-      &   put
-        $ ( "
+        &   (its.solve)
+          $ ( velocity
+            . a b
+            . period*a+St*b+-1*Sh St*a+St2*b+-1*Sth
+            )
+        &   put
+          $ ( "
 
 second degree: a:position, b:velocity c:acceleration
 "
-          , solutions
-          , APP
-          )
-      &   (its.solve)
-        $ ( a b c
-          .   period*a+St*b+St2*c+-1*Sh
-              St*a+St2*b+St3*c+-1*Sth
-              St2*a+St3*b+St4*c+-1*St2h
-          )
-      &   put
-        $ ( "
+            , solutions
+            , APP
+            )
+        &   (its.solve)
+          $ ( acceleration
+            . a b c
+            .   period*a+St*b+St2*c+-1*Sh
+                St*a+St2*b+St3*c+-1*Sth
+                St2*a+St3*b+St4*c+-1*St2h
+            )
+        &   put
+          $ ( "
 
-third degree: a:position b:velocity c:acceleration d:change of acceleration
+third degree: a:position b:velocity c:acceleration d:jerk
 "
-          , solutions
-          , APP
+            , solutions
+            , APP
+            )
+        & (   ~
+            &   (its.solve)
+              $ ( jerk
+                . a b c d
+                .   period*a+St *b+St2*c+St3*d+-1*Sh
+                    St    *a+St2*b+St3*c+St4*d+-1*Sth
+                    St2   *a+St3*b+St4*c+St5*d+-1*St2h
+                    St3   *a+St4*b+St5*c+St6*d+-1*St3h
+                )
+          |   (its.solve)
+            $ ( simplejerk
+              . a b c d
+              .   period*a      +St2*c+St3*d
+                           St2*b+St3*c+St4*d+-1*Sth
+                  St2   *a+St3*b+St4*c+St5*d+-1*St2h
+                  St3   *a+St4*b+St5*c+St6*d+-1*St3h
+              )
           )
-      &   (its.solve)
-        $ ( a b c d
-          .   period*a+St*b+St2*c+St3*d+-1*Sh
-              St*a+St2*b+St3*c+St4*d+-1*Sth
-              St2*a+St3*b+St4*c+St5*d+-1*St2h
-              St3*a+St4*b+St5*c+St6*d+-1*St3h
+        &   put
+          $ ( "
+
+fourth degree: a:position b:velocity c:acceleration d:jerk e:jounce
+"
+            , solutions
+            , APP
+            )
+        & (   ~
+            &   (its.solve)
+              $ ( jounce
+                . a b c d e
+                .   period*a+St *b+St2*c+St3*d+St4*e+-1*Sh
+                    St    *a+St2*b+St3*c+St4*d+St5*e+-1*Sth
+                    St2   *a+St3*b+St4*c+St5*d+St6*e+-1*St2h
+                    St3   *a+St4*b+St5*c+St6*d+St7*e+-1*St3h
+                    St4   *a+St5*b+St6*c+St7*d+St8*e+-1*St4h
+                )
+          |   (its.solve)
+            $ ( simplejounce
+                . a b c d e
+                .   period*a      +St2*c+St3*d+St4*e
+                             St2*b+St3*c+St4*d+St5*e+-1*Sth
+                    St2*a   +St3*b+St4*c+St5*d+St6*e+-1*St2h
+                    St3*a   +St4*b+St5*c+St6*d+St7*e+-1*St3h
+                    St4*a   +St5*b+St6*c+St7*d+St8*e+-1*St4h
+              )
           )
   );
 

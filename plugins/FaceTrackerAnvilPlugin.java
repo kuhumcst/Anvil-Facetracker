@@ -158,7 +158,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         public void ArrowStuff(double hVal,double vVal,int ind,String attribute,Color belowThreshold,Color aboveThreshold)
             {
             /*
-            hVal and vVal are pixels/second {velocity} or pixels/(second*second) {acceleration}
+            hVal and vVal are pixels/second {velocity} or pixels/(second*second) {acceleration}  or pixels/(second*second*second) {jerk}
+            (Future: jounce = pixels/(second*second*second*second) ?)
             */
             double h_component = hVal * scale;
             double v_component = vVal * scale;
@@ -179,14 +180,17 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             q2.y = (int) (V + vectorSizePerUnitOfHeadSize * v_component);
 
             /*
-            * Compute averaged head speed or accelaration.
+            * Compute averaged head speed or acceleration.
             * (squared)
             */
             newsagitta = (hthres.inverseSquare * h_component * h_component + vthres.inverseSquare * v_component * v_component);
-            if(   doMinima && newsagitta < squareOfHeadSizePerUnitOfVectorSize
+            boolean thresholdreached = false;
+            if(   doAllFrames
+              ||  doMinima && newsagitta < squareOfHeadSizePerUnitOfVectorSize
               || !doMinima && newsagitta > squareOfHeadSizePerUnitOfVectorSize
               )
                 {
+                thresholdreached = true;
                 typa.setLineColor(aboveThreshold);
                 if(newsagitta > sagitta)
                     {
@@ -205,7 +209,15 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                     }
                 end = Ts[ind];
                 }
-            else
+            if(doAllFrames)
+                {
+                int middle = index - (period+1)/2;
+                onset = Ts[middle % seqsiz];
+                end = Ts[(middle+1) % seqsiz];
+                busiest = onset;
+                thresholdreached = false;
+                }
+            if(!thresholdreached)
                 {
                 typa.setLineColor(belowThreshold);
                 if(onset != null)
@@ -270,9 +282,10 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             overlayPanel.setPath("arrow", typa, pathQ);
             }
         };
-    Sagitta acceleration = new Sagitta(1.0);
     Sagitta velocity = new Sagitta(5.0);
-
+    Sagitta acceleration = new Sagitta(1.0);
+    Sagitta jerk = new Sagitta(1.0);
+    
     private final String ANN_TEXT = "annotation: ";
     private final String ACTIVE_TRACK_TEXT = "track: ";
     private final String EMPTY_TEXT = "---";
@@ -329,7 +342,9 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private double t0 = 0.0;
     private int seqsiz = 25;
     private int period = 10; // must be <= seqsiz
-    private int defaultperiod = 10; // must be <= seqsiz
+    private int defaultperiodV = 7;  // must be <= seqsiz
+    private int defaultperiodA = 14; // must be <= seqsiz
+    private int defaultperiodJ = 21; // must be <= seqsiz
     private int index = 0; // incremented for every analysed frame 
     private int prevframenr = -1;
     private int framenr = -1;
@@ -349,9 +364,11 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private boolean stepping = false;
     private boolean doVelocity = true;
     private boolean doAcceleration = false;
+    private boolean doJerk = false;
 	private boolean doMinima = false;
 	private boolean doLHS = false;
 	private boolean doRHS = false;
+    private boolean doAllFrames = false;
 
     double headsize = 160.0; // 80 + 80, horizontal and vertical size of head's clip rectangle in a movie I've seen.
     double vectorSizePerUnitOfHeadSize = 1.0;
@@ -371,6 +388,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private JButton buttStep;
     CascadeClassifier classifier;
     private JCheckBox noneButton;
+    private JCheckBox allFramesCheckBox;
     private String HaarcascadesDir;
     private String defaultHaarcascade = "haarcascade_frontalface_alt.xml";
     private String selectedHaarcascade = defaultHaarcascade;
@@ -508,6 +526,10 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         noneButton.setActionCommand("none");
         noneButton.setSelected(true);
 
+        allFramesCheckBox = new JCheckBox("Annotate every frame");
+        allFramesCheckBox.setActionCommand("allframes");
+        allFramesCheckBox.setSelected(true);
+
 		MinimaCheckBox = new JCheckBox(EMPTY_TEXT); 
         MinimaCheckBox.setActionCommand("Minima");
 		LeftCheckBox = new JCheckBox(EMPTY_TEXT); 
@@ -516,6 +538,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         RightCheckBox.setActionCommand("Right");
 
         noneButton.addActionListener(this);
+        allFramesCheckBox.addActionListener(this);
 		MinimaCheckBox.addActionListener(this);
 		LeftCheckBox.addActionListener(this);
 		RightCheckBox.addActionListener(this);
@@ -526,6 +549,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         buttons.add(buttCancel);
         buttons.add(buttHaar);
         info.add(noneButton);
+        info.add(allFramesCheckBox);
 		info.add(MinimaCheckBox);
 		info.add(LeftCheckBox);
 		info.add(RightCheckBox);
@@ -634,7 +658,15 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         if (!slide.getValueIsAdjusting()) 
             {
             period = slide.getValue();
-            if(doAcceleration)
+            if(doJerk)
+                {
+                if(period < 4)
+                    {
+                    slide.setValue(4);
+                    period = 4;
+                    }
+                }
+            else if(doAcceleration)
                 {
                 if(period < 3)
                     {
@@ -687,6 +719,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         MinimaCheckBox.setEnabled(val);
         LeftCheckBox.setEnabled(val);
         RightCheckBox.setEnabled(val);
+        allFramesCheckBox.setEnabled(val);
 		}
 
     public void setBegin()
@@ -722,12 +755,14 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         MinimaCheckBox.setText("Annotate when velocity is LOW.");
         LeftCheckBox.setText("Left");
         RightCheckBox.setText("Right");
+        allFramesCheckBox.setText("Annotate All Frames");
         if(period < 2)
             {
             slide.setValue(2);
             period = 2;
             }
         doAcceleration = false;
+        doJerk = false;
 		noneButton.setSelected(false);
         setEnd();
 		}
@@ -737,7 +772,27 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 		setBegin();
         doVelocity = false;
         doAcceleration = true;
+        doJerk = false;
         MinimaCheckBox.setText("Annotate when acceleration is LOW.");
+        LeftCheckBox.setText("Left");
+        RightCheckBox.setText("Right");
+        allFramesCheckBox.setText("Annotate All Frames");
+        if(period < 3)
+            {
+            slide.setValue(3);
+            period = 3;
+            }
+		noneButton.setSelected(false);
+		setEnd();
+		}
+		
+    public void setJerk()
+		{
+		setBegin();
+        doVelocity = false;
+        doAcceleration = false;
+        doJerk = true;
+        MinimaCheckBox.setText("Annotate when jerk is LOW.");
         LeftCheckBox.setText("Left");
         RightCheckBox.setText("Right");
         if(period < 3)
@@ -754,14 +809,21 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         MinimaCheckBox.setText(EMPTY_TEXT);
         LeftCheckBox.setText(EMPTY_TEXT);
         RightCheckBox.setText(EMPTY_TEXT);
+        allFramesCheckBox.setText(EMPTY_TEXT);
         doVelocity = false;
         doAcceleration = false;
+        doJerk = false;
 		noneButton.setSelected(true);
         disableFaceTracking = true;
         doStepping(false);
         buttStep.setText(EMPTY_TEXT);
         buttStep.setEnabled(false);
         setSettingsEnabled(false);
+		}		
+		
+    public void setAllFrames()
+		{
+		allFramesCheckBox.setSelected(true);
 		}		
 		
 	public void saveTrackSettings()
@@ -776,6 +838,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                     java.util.List list = activeTrack.getAttributeNames();
                     if(  list.contains("acceleration")
 				      || list.contains("velocity")
+				      || list.contains("jerk")
 				      )
 						{
 						AnnProperties annProperties = ann.getProperties();
@@ -785,6 +848,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 						annProperties.addProperty("doMinima."+ActiveTrack,new AnnStringProperty(doMinima ? "1" : "0"));
 						annProperties.addProperty("LHS."+ActiveTrack,new AnnStringProperty(doLHS ? "1" : "0"));
 						annProperties.addProperty("RHS."+ActiveTrack,new AnnStringProperty(doRHS ? "1" : "0"));
+						annProperties.addProperty("AllFrames."+ActiveTrack,new AnnStringProperty(doAllFrames ? "1" : "0"));
 						annProperties.addProperty("Haarcascade."+ActiveTrack,new AnnStringProperty(selectedHaarcascade));
 						buttSave.setEnabled(false);
 						buttCancel.setEnabled(false);
@@ -811,11 +875,23 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                 try 
                     {
                     java.util.List list = activeTrack.getAttributeNames();
-                    if(  list.contains("acceleration")
-				      || list.contains("velocity")
-				      )
+                    if(list.contains("velocity"))
 						{
-						setControls();
+						setControls(defaultperiodV);
+						buttSave.setEnabled(false);
+						buttCancel.setEnabled(false);            
+						buttHaar.setEnabled(true);            
+						}
+                    if(list.contains("acceleration"))
+						{
+						setControls(defaultperiodA);
+						buttSave.setEnabled(false);
+						buttCancel.setEnabled(false);            
+						buttHaar.setEnabled(true);            
+						}
+                    if(list.contains("jerk"))
+						{
+						setControls(defaultperiodJ);
 						buttSave.setEnabled(false);
 						buttCancel.setEnabled(false);            
 						buttHaar.setEnabled(true);            
@@ -829,7 +905,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             }
         }
 
-    public boolean setControls()
+    public boolean setControls(int defaultperiod)
 		{            
         boolean notFoundInFile = false;
         AnnProperties annProperties = ann.getProperties();
@@ -873,6 +949,18 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			notFoundInFile = true;
 			}
         slide.setValue(period);
+			
+        prop = annProperties.getProperty("AllFrames."+ActiveTrack);
+        if(prop != null)
+			{
+			doAllFrames = Integer.parseInt(prop.getContent()) == 1;
+			}
+		else
+			{
+			doAllFrames = false;
+			notFoundInFile = true;
+			}
+		allFramesCheckBox.setSelected(doAllFrames);
 			
         prop = annProperties.getProperty("doMinima."+ActiveTrack);
         if(prop != null)
@@ -947,7 +1035,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                     java.util.List list = activeTrack.getAttributeNames();
                     if(list.contains("acceleration"))
 						{
-			            notfoundInFile = setControls();
+			            notfoundInFile = setControls(defaultperiodA);
 						setAcceleration();
 						movementIntervalsTrack = (AnnPrimaryTrackImpl) activeTrack;
 						activeTrackLabelSelected.setText("Acceleration track");
@@ -955,12 +1043,20 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 						}
 					else if(list.contains("velocity"))
 						{
-			            notfoundInFile = setControls();
+			            notfoundInFile = setControls(defaultperiodV);
 						setVelocity();
 						movementIntervalsTrack = (AnnPrimaryTrackImpl) activeTrack;
 						activeTrackLabelSelected.setText("Velocity track");
 						messageLabel.setText("");
 						}
+					else if(list.contains("jerk"))
+						{
+			            notfoundInFile = setControls(defaultperiodJ);
+						setJerk();
+						movementIntervalsTrack = (AnnPrimaryTrackImpl) activeTrack;
+						activeTrackLabelSelected.setText("Jerk track");
+						messageLabel.setText("");
+						}						
 					else
 						{
 						activeTrackLabelSelected.setText(EMPTY_TEXT);
@@ -1050,6 +1146,15 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 				{
 				getTrackSettings();
 				}
+            }
+        else if(com.equals("allframes"))
+            {
+            JCheckBox cb = (JCheckBox)e.getSource();
+            doAllFrames = cb.isSelected();
+			buttSave.setEnabled(true);
+			buttCancel.setEnabled(true);            
+			buttHaar.setEnabled(true);            
+			controlsTouched = true;
             }
         else if(com.equals("Minima"))
             {
@@ -1278,6 +1383,7 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 
         acceleration.reset();
         velocity.reset();
+        jerk.reset();
         setVectorSizePerUnitOfHeadSize();
 
         xell = 0;
@@ -1378,7 +1484,18 @@ For vertical, replace h th t2h by v tv t2v
         );
 
         }
+            
+    private double simplejerk_d(double St2, double St2h, double St3, double St3h, double St4, double St5, double St6, double Sth, double period)
+        {
+        double var1 = St3*St3;
+        double var2 = St4*St4;
+        double var5 = St3*St5;
+        double var6 = var1-St2*St4;
 
+        return -(St2h*(St2*St5*period-St3*(St2*St2+St4*period))+St3h*(St2*St2*St2+period*var6)+Sth*(St2*var6+period*(var2-var5)))
+           /(var1*var1-St2*(St5*St5*period-St2*(var2+2*var5-St2*St6)+St4*(3*var1-St6*period))-period*(St6*var1+St4*(var2+-2.0*var5)));
+        }
+        
     private void setVectorSizePerUnitOfHeadSize()
         {
         if(headsize > 5.0) // very small head!
@@ -1549,6 +1666,8 @@ For vertical, replace h th t2h by v tv t2v
                     int done = 0;
                     int faceHorCenter = 0;
                     int faceVerCenter = 0;
+                    int faceHorCenter2 = 0;
+                    int faceVerCenter2 = 0;
                     int withinBounds = 0;
                     faceSeen = true;
                     Rect[] rects = faces.toArray();
@@ -1579,7 +1698,9 @@ For vertical, replace h th t2h by v tv t2v
                                 {
                                 HormaxFace = x + w;
                                 }
+                            faceHorCenter2 = 2*x + w;
                             faceHorCenter = x + w / 2;
+                            faceVerCenter2 = 2*y + hhh;
                             faceVerCenter = y + hhh / 2;
                             /* Check that the center of the current 
                              * face isn't inside the bounding box of 
@@ -1625,8 +1746,8 @@ For vertical, replace h th t2h by v tv t2v
                                     }
 
                                 Ts[ind] = time;
-                                hs[ind] = faceHorCenter;
-                                vs[ind] = faceVerCenter;
+                                hs[ind] = faceHorCenter2;
+                                vs[ind] = faceVerCenter2;
                                 ++index;
                                 if (index >= period) 
                                     {
@@ -1634,33 +1755,52 @@ For vertical, replace h th t2h by v tv t2v
                                      * Regression
                                      */
                                     int i;
-                                    double medianTime = (ts[ind] + ts[(index - period) % seqsiz]) / 2.0; // rounded to integer
+                                    double medianTime = 0;//(ts[ind] + ts[(index - period) % seqsiz]) / 2.0; // rounded to integer
 
-                                    double St=0.0, St2=0.0, St3=0.0, St4=0.0, Sh=0.0, Sth=0.0, St2h=0.0, Sv=0.0, Stv=0.0, St2v=0.0;
+                                    double St=0.0, St2=0.0, St3=0.0, St4=0.0, St5=0.0, St6=0.0, 
+                                           Sh=0.0, Sth=0.0, St2h=0.0, St3h=0.0, 
+                                           Sv=0.0, Stv=0.0, St2v=0.0, St3v=0.0;
+                                    double avarageh = 0;
+                                    double avaragev = 0;
+                                    for(i = index - period;i < index;++i)
+                                        {
+                                        int id = i % seqsiz;
+                                        avarageh += hs[id];
+                                        avaragev += vs[id];
+                                        medianTime += ts[id];
+                                        }
+                                    avarageh = avarageh / period;
+                                    avaragev = avaragev / period;
+                                    medianTime = medianTime / period;
                                     for(i = index - period;i < index;++i)
                                         {
                                         int id = i % seqsiz;
                                         double t = ts[id] - medianTime;
                                         double t2 =  t * t;
-                                        double h = hs[id];
-                                        double v = vs[id];
+                                        double t3 =  t2 * t;
+                                        double h = hs[id] - avarageh;
+                                        double v = vs[id] - avaragev;
                                         St   += t;
                                         St2  += t2;
                                         St3  += t2*t;
                                         St4  += t2*t2;
+                                        St5  += t2*t3;
+                                        St6  += t3*t3;
                                         Sh   += h;
                                         Sth  += t*h;
                                         St2h += t2*h;
+                                        St3h += t3*h;
                                         Sv   += v;
                                         Stv  += t*v;
                                         St2v += t2*v;
+                                        St3v += t3*v;
                                         }
                                     /*
                                      * Average position of the head 
                                      * during the period.
                                      */
-                                    H = (int)(Sh / (double)period);
-                                    V = (int)(Sv / (double)period);
+                                    H = (int)((avarageh + (Sh / (double)period))/2.0);
+                                    V = (int)((avaragev + (Sv / (double)period))/2.0);
 
                                     /*
                                      * Compute position and dimensions of
@@ -1685,6 +1825,15 @@ For vertical, replace h th t2h by v tv t2v
                                         double vh = velocity(St, St2, Sh, Sth, (double)period);
                                         double vv = velocity(St, St2, Sv, Stv, (double)period);
                                         velocity.ArrowStuff(vh,vv,ind,"velocity",Color.red,Color.orange);
+                                        }
+                                        
+                                    if(doJerk)
+                                        {
+                                        double ch = simplejerk_d(St2, St2h, St3, St3h, St4, St5, St6, Sth, period);
+                                        double cv = simplejerk_d(St2, St2v, St3, St3v, St4, St5, St6, Stv, period);
+                                        //double ch = jerk_d(Sh, St, St2, St2h, St3, St3h, St4, St5, St6, Sth, (double)period);
+                                        //double cv = jerk_d(Sv, St, St2, St2v, St3, St3v, St4, St5, St6, Stv, (double)period);
+                                        jerk.ArrowStuff(ch,cv,ind,"jerk",Color.pink,Color.green);
                                         }
                                     }
                                 else
