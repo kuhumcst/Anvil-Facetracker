@@ -1,0 +1,18 @@
+2016.07.07
+
+1) Better policy for saving face tracker settings in Anvil file.
+2) Disabling/enabling of face tracker controls that are (ir)relevant under
+given circumstances. For example, setting threshold is disabled if the user
+has chosen to annotate every frame. (For later machine learning purpose.)
+
+2016.05.18
+
+1) Annotation of "jerk" (third time derivative of position) in addition to 
+   "velocity" (first derivative) and "acceleration" (second derivative).
+2) Different default periods: velocity 7 frames, acceleration 14 frames and
+   jerk 21 frames.
+3) Can create annotations for each and every frame, as long as there is data.
+   (Perhaps) useful for machine learning. The frame's point in time is halfway
+   the beginning and the end of the current time frame.
+4) New track-spec for faceJerk
+   

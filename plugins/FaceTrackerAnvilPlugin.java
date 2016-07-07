@@ -240,6 +240,11 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                         AnnTimestampedPointsAttribute pt2 = new AnnTimestampedPointsAttribute(attribute, typabiggest);
                         newel.setAttribute(pt2);
                         movementIntervalsTrack.addElement(newel);
+                        if(!annotationAddedToTrack)
+                            {
+                            annotationAddedToTrack = true;
+                            saveTrackSettings();
+                            }
                         /*
                         * Add vector to
                         * the new interval element
@@ -350,6 +355,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     private int framenr = -1;
     private boolean faceSeen = false;
     private boolean controlsTouched = false;
+    private boolean annotationAddedToTrack = false;
+    
     /* 
      * Round robin lists: Ts ts vs hs 
      */
@@ -714,9 +721,18 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
     public void setSettingsEnabled(boolean val)
 		{
         slide.setEnabled(val);
-        slideh.setEnabled(val);
-        slidev.setEnabled(val);
-        MinimaCheckBox.setEnabled(val);
+        if(doAllFrames)
+            {
+            slideh.setEnabled(false);
+            slidev.setEnabled(false);
+            MinimaCheckBox.setEnabled(false);
+            }
+        else
+            {
+            slideh.setEnabled(val);
+            slidev.setEnabled(val);
+            MinimaCheckBox.setEnabled(val);
+            }
         LeftCheckBox.setEnabled(val);
         RightCheckBox.setEnabled(val);
         allFramesCheckBox.setEnabled(val);
@@ -795,10 +811,11 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         MinimaCheckBox.setText("Annotate when jerk is LOW.");
         LeftCheckBox.setText("Left");
         RightCheckBox.setText("Right");
-        if(period < 3)
+        allFramesCheckBox.setText("Annotate All Frames");
+        if(period < 4)
             {
-            slide.setValue(3);
-            period = 3;
+            slide.setValue(4);
+            period = 4;
             }
 		noneButton.setSelected(false);
 		setEnd();
@@ -961,6 +978,9 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			notFoundInFile = true;
 			}
 		allFramesCheckBox.setSelected(doAllFrames);
+        slideh.setEnabled(!doAllFrames);
+	    slidev.setEnabled(!doAllFrames);
+		MinimaCheckBox.setEnabled(!doAllFrames);
 			
         prop = annProperties.getProperty("doMinima."+ActiveTrack);
         if(prop != null)
@@ -1106,8 +1126,6 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
         return res;
         }
 
-
-
     /**
     * Listens to the buttons.
     */
@@ -1141,7 +1159,12 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
             {
             JCheckBox cb = (JCheckBox)e.getSource();
             if(cb.isSelected())
+                {
+                if(annotationAddedToTrack)
+                    saveTrackSettings();
+
 				setNone();
+				}
 			else
 				{
 				getTrackSettings();
@@ -1155,6 +1178,11 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttCancel.setEnabled(true);            
 			buttHaar.setEnabled(true);            
 			controlsTouched = true;
+            if(annotationAddedToTrack)
+                saveTrackSettings();
+            slideh.setEnabled(!doAllFrames);
+	        slidev.setEnabled(!doAllFrames);
+	        MinimaCheckBox.setEnabled(!doAllFrames);
             }
         else if(com.equals("Minima"))
             {
@@ -1164,6 +1192,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttCancel.setEnabled(true);            
 			buttHaar.setEnabled(true);            
 			controlsTouched = true;
+            if(annotationAddedToTrack)
+                saveTrackSettings();
             }
         else if(com.equals("Left"))
             {
@@ -1173,6 +1203,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttCancel.setEnabled(true);            
 			buttHaar.setEnabled(true);            
 			controlsTouched = true;
+            if(annotationAddedToTrack)
+                saveTrackSettings();
             }
         else if(com.equals("Right"))
             {
@@ -1182,6 +1214,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttCancel.setEnabled(true);            
 			buttHaar.setEnabled(true);            
 			controlsTouched = true;
+            if(annotationAddedToTrack)
+                saveTrackSettings();
             }
         else if(com.equals("Haarcascade"))
             {
@@ -1200,6 +1234,8 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
                     System.exit(1);
                     }
                 }
+            if(annotationAddedToTrack)
+                saveTrackSettings();
             }
         }
 
@@ -1306,6 +1342,9 @@ AnvilChangeListener, AnnotationChangeListener, MouseListener
 			buttHaar.setEnabled(true);            
             if(cancelled)
 				messageLabel.setText("   (Changes of settings cancelled!)");
+			else if(annotationAddedToTrack)
+                saveTrackSettings();
+            annotationAddedToTrack = false;
             }
         }
 
@@ -1484,7 +1523,23 @@ For vertical, replace h th t2h by v tv t2v
         );
 
         }
+/*        
+    private double simplejerk_a(double St2, double St2h, double St3, double St3h, double St4, double St5, double St6, double Sth, double period,double c,double d)
+        {
+        return -1.0*(St2*c+St3*d)/(period);
+        }        
             
+    private double simplejerk_b(double St2, double St2h, double St3, double St3h, double St4, double St5, double St6, double Sth, double period,double c,double d)
+        {
+        return (Sth+-1*St3*c+-1*St4*d)/(St2);
+        }        
+
+    private double simplejerk_c(double St2, double St2h, double St3, double St3h, double St4, double St5, double St6, double Sth, double period,double d)
+        {
+        return -1.0*(-1*St3*(Sth*period+-1*d*(St2*St2+St4*period))+St2*period*(St2h+-1*St5*d))
+        /(St2*St2*St2+period*(St3*St3+-1*St2*St4));
+        }
+*/                    
     private double simplejerk_d(double St2, double St2h, double St3, double St3h, double St4, double St5, double St6, double Sth, double period)
         {
         double var1 = St3*St3;
@@ -1812,6 +1867,19 @@ For vertical, replace h th t2h by v tv t2v
                                     yell = V - vthres.ellipseRadius;
                                     well = 2 * hthres.ellipseRadius;
                                     hell = 2 * vthres.ellipseRadius;
+/*
+                                    {
+                                        double dh = simplejerk_d(St2, St2h, St3, St3h, St4, St5, St6, Sth, period);
+                                        double dv = simplejerk_d(St2, St2v, St3, St3v, St4, St5, St6, Stv, period);
+                                        double ch = simplejerk_c(St2, St2h, St3, St3h, St4, St5, St6, Sth, period,dh);
+                                        double cv = simplejerk_c(St2, St2v, St3, St3v, St4, St5, St6, Stv, period,dv);
+                                        double bh = simplejerk_b(St2, St2h, St3, St3h, St4, St5, St6, Sth, period,ch,dh);
+                                        double bv = simplejerk_b(St2, St2v, St3, St3v, St4, St5, St6, Stv, period,cv,dv);
+                                        double ah = simplejerk_a(St2, St2h, St3, St3h, St4, St5, St6, Sth, period,ch,dh);
+                                        double av = simplejerk_a(St2, St2v, St3, St3v, St4, St5, St6, Stv, period,cv,dv);
+                                        System.out.printf("ah:%f av:%f bh:%f bv:%f ch:%f cv:%f dh:%f dv:%f\n",ah,av,bh,bv,ch,cv,dh,dv);
+                                    }
+*/
                                     
                                     if(doAcceleration)
                                         {
@@ -1929,10 +1997,20 @@ For vertical, replace h th t2h by v tv t2v
                 clipCorrect();
                 }
             if(stepping && framenr >= 0)
-                {                
+                {
                 prevframenr = framenr;
                 framenr += 1;
                 mediaDelegate.setVideoFrame(framenr);
+                int nframenr = main.getAnnoBoard().getPlayline() + 1;
+                System.out.println("framenr:" + framenr + " nframenr:" + nframenr);
+                if(nframenr - 10 > framenr)
+                    {
+                    System.out.println("THE END");
+                    stepping = false;
+        			buttStep.setText(doStepping(stepping));
+                    if(annotationAddedToTrack)
+                        saveTrackSettings();
+                    }
                 }    
             }
         }
