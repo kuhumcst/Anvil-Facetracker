@@ -1,0 +1,1904 @@
+{SVM.bra
+
+Script for training an SVM classifier of head movements and for prediction
+of head movements in a test file.
+
+Produces a LateX table.
+
+Before running this script, edit or inspect the first lines, where
+the following variables are set:
+  relativePathToAnvilWorkingDirectory
+  anvil-file.train
+  anvil-file.test
+  speaker
+  observables
+  numbers
+  interval
+  before
+  movementType
+
+To run this script, download, install and run Bracmat (https://github.com/BartJongejan/Bracmat)
+and then, after the Bracmat promt, type 
+
+{?} get$"SVM.bra"
+
+}
+
+X=
+  (relativePathToAnvilWorkingDirectory="../")
+  ( anvil-file
+  =   (train="video/M1_M5-all-final-facetracker.anvil")
+      ( test
+      = "bra/M1_F4-all-final-facetracker.any-vaj-rdXY-XY.pred.NodJerkHeadBackwardHeadForward-vaj-rdXY.anvil"
+      )
+      (test="video/M1_F4-all-final-facetracker.anvil")
+  )
+  (speaker=SpeakerA)
+  (observables=velocity acceleration jerk)
+  (numbers=radius direction X Y)
+  (numbers=X Y)
+  (interval=(start=-1) (end=-1))
+  (before=faceV)
+  ( movementType
+  = 
+  =   
+    | Waggle
+    | Tilt
+    | SideTurn
+    | HeadOther
+    | Shake
+  )
+  ( movementType
+  = 
+  =   Nod
+    | Jerk
+    | HeadBackward
+    | HeadForward
+  )
+  (movementType==?any)
+  ( specification
+  =   ?A
+      ( annotation-spec
+      .   ?attA
+        ,   ?B
+            ( body
+            .   ?attB
+              ,   ?C
+                  ( group
+                  .   ?attC (name.!Speaker) ?attD
+                    ,   ?F
+                        ( track-spec
+                        . ?attF (name.!trackName) ?attG,?G
+                        )
+                        ?H
+                  )
+                  ?I
+            )
+            ?J
+      )
+      ?K
+  )
+  ( nameAddition
+  =   nm insp a z
+    .   ( insp
+        =   a b
+          .     '$arg:(==?a_?b)
+              & insp$('$a)
+              & insp$('$b)
+            | !nm !(arg.):?nm
+        )
+      & :?nm
+      & insp$!(its.movementType)
+      & ( acro
+        =   o c
+          .   
+            & str$(!nm "-"):?nm
+            &   whl
+              ' ( !arg:@(%:%?o ?c) ?arg
+                & !nm !o:?nm
+                & (   @(!c:? (%@?o&upp$!o:!o) ?)
+                    & !nm !o:?nm
+                  | 
+                  )
+                )
+            & str$!nm:?nm
+        )
+      & acro$!(its.observables)
+      & acro$!(its.numbers)
+      &   whl
+        ' ( @( !nm
+             :   ?a
+                 ( "?"
+                 | "%"
+                 | "*"
+                 | \"
+                 | "'"
+                 | "$"
+                 | "&"
+                 | "/"
+                 | "\\"
+                 | "["
+                 | "]"
+                 | "{"
+                 | "}"
+                 | "|"
+                 | "="
+                 | "~"
+                 | "`"
+                 | "+"
+                 | "^"
+                 | ":"
+                 | ";"
+                 | ","
+                 | "<"
+                 | ">"
+                 | "!"
+                 )
+                 ?z
+             )
+          & str$(!a !z):?nm
+          )
+      & !nm
+  )
+  (track=.str$(predicted- (its.nameAddition)$))
+  ( insertPredictions
+  =   
+    .   ( ensureTrack
+        =     Speaker trackName spec
+            , A B C F G H I J K
+            , attA attC attD attF attG
+          .     ( findSpecification
+                =   Speaker trackname spec
+                  .   !arg:(?Speaker.?trackname.?spec)
+                    & out$(find !Speaker !trackname)
+                    &   !spec
+                      :   ?A
+                          ( annotation-spec
+                          .   ?attA
+                            ,   ?B
+                                ( body
+                                .   ?attB
+                                  ,   ?C
+                                      ( group
+                                      .     ?attC
+                                            (name.!Speaker)
+                                            ?attD
+                                        ,   ?F
+                                            ( track-spec
+                                            .     ?attF
+                                                  (name.!trackname)
+                                                  ?attG
+                                              , ?G
+                                            )
+                                            ?H
+                                      )
+                                      ?I
+                                )
+                                ?J
+                          )
+                          ?K
+                )
+              & ( trackspec
+                =   
+                  .   ( track-spec
+                      .   (name.!arg) (type.primary)
+                        ,   \r\n
+                            "                "
+                            ( attribute
+                            .     (name.prediction)
+                                  (valuetype.TimestampedPoints)
+                              ,   \r\n
+                                  "                    "
+                                  ( config-spatial
+                                  .   
+                                    ,   \r\n
+                                        "                        "
+                                        ( connections
+                                        .     (color.yellow)
+                                              (size.3)
+                                              (transparency."0.7")
+                                              (type.arrow)
+                                          , 
+                                        )
+                                        \r\n
+                                        "                        "
+                                        ( marker
+                                        .     (color.black)
+                                              (filled.false)
+                                              (numbering.false)
+                                              (size.5)
+                                              (transparency."0.7")
+                                          , 
+                                        )
+                                        \r\n
+                                        "                    "
+                                  )
+                                  \r\n
+                                  "                "
+                            )
+                            \r\n
+                            "            "
+                      )
+                      \r\n
+                      "            "
+                )
+              & out$"ensureTrack called"
+              &   !arg
+                : (?Speaker.?trackName.?before.?specificationFile)
+              &   out
+                $ ( Speaker
+                    !Speaker
+                    trackName
+                    !trackName
+                    before
+                    !before
+                    specificationFile
+                    !specificationFile
+                  )
+              & get$(!specificationFile,X ML):?spec
+              & out$(got !specificationFile)
+              & nestML$!spec:?spec
+              & out$(specification nested)
+              & lst$(spec,"specification.bra",NEW)
+              &   out
+                $ (Speaker !Speaker trackName !trackName before !before)
+              & (   findSpecification$(!Speaker.!trackName.!spec)
+                  & out$(!trackName allready present)
+                  & !specificationFile
+                |     findSpecification
+                    $ (!Speaker.!(its.before).!spec)
+                  & out$(found !(its.before))
+                  &     !A
+                        ( annotation-spec
+                        .   !attA
+                          ,   !B
+                              ( body
+                              .   !attB
+                                ,   !C
+                                    ( group
+                                    .   !attC (name.!Speaker) !attD
+                                      ,   !F
+                                          trackspec$!trackName
+                                          ( track-spec
+                                          .     !attF
+                                                (name.!(its.before))
+                                                !attG
+                                            , !G
+                                          )
+                                          !H
+                                    )
+                                    !I
+                              )
+                              !J
+                        )
+                        !K
+                    : ?spec
+                  & path$!specificationFile:?PAATH
+                  &   str$(!PAATH newspec (its.nameAddition)$() ".xml")
+                    : ?newspec
+                  & out$(newspec !newspec)
+                  & put$(toML$!spec,!newspec,NEW,BIN)
+                  & out$saved
+                  & !newspec
+                )
+            |   out$(str$("Cannot open spec file " !specificationFile))
+              & !specificationFile
+        )
+      & !arg:(?Anvil.?P.?T)
+      & out$(Opening !Anvil)
+      & nestML$(get$(!Anvil,X ML TRM)):?xml
+      & out$(Opening !Anvil succeeded)
+      & (     !xml
+            :   ?A1
+                ( annotation
+                .   ?A2
+                  ,   ?A3
+                      ( head
+                      .   ?A4
+                        ,   ?A5
+                            ( specification
+                            . (src.?specificationFile),?A6
+                            )
+                            ?A7
+                      )
+                      ?A8
+                )
+                ?A9
+          & out$(specification !specificationFile)
+          & path$!Anvil:?relpath
+          & out$(relpath !relpath)
+          & str$(!relpath !specificationFile):?XspecificationFile
+          & out$(specificationFile !XspecificationFile)
+          & ( (       ensureTrack
+                    $ ( !(its.speaker)
+                      . (its.track)$
+                      . faceV
+                      . !XspecificationFile
+                      )
+                  : ?XspecificationName
+                & ( setVideo
+                  =   F H G J C
+                    .     !arg
+                        :   ?F
+                            (video.?G (src.?video) ?J,?C)
+                            ?H
+                      &   !F
+                          ( video
+                          .   !G (src.str$(!relpath !video)) !J
+                            , !C
+                          )
+                          !H
+                  )
+                & ( setVideo$!A5:?A5
+                  | setVideo$!A7:?A7
+                  | out$"setVideo failed"
+                  )
+                &     !A1
+                      ( annotation
+                      .   !A2
+                        ,   !A3
+                            ( head
+                            .   !A4
+                              ,   !A5
+                                  ( specification
+                                  . (src.!XspecificationName),!A6
+                                  )
+                                  !A7
+                            )
+                            !A8
+                      )
+                      !A9
+                  : ?xml
+              | out$(ensureTrack failed)
+              )
+            |   out$("cannot open specification file " !specificationFile)
+              & ~
+            )
+        | out$"Cannot find name of specification file"&~
+        )
+      & lst$(xml,"xml.bra",NEW)
+      & :?els:?sle
+      & fil$(!P,r)
+      & fil$(,STR,\n)
+      & 0:?index
+      &   whl
+        ' ( fil$!P:(?p.?)
+          & !T:(?s.?e) ?T
+          & (   !p:1
+              & @(!s:?s #@?sd1 #@?sd2)
+              & @(!e:?e #@?ed1 #@?ed2)
+              & 1+!index:?index
+              &     ( el
+                    .     (index.!index)
+                          (start.str$(!s "." !sd1 !sd2))
+                          (end.str$(!e "." !ed1 !ed2))
+                      , 
+                    )
+                    !sle
+                : ?sle
+            | 
+            )
+          )
+      &   whl
+        ' ( !sle:%?el ?sle
+          & !el "\r\n    " !els:?els
+          )
+      & (fil$(!P,SET,-1)|)
+      &   str$(!(its.speaker) "." (its.track)$)
+        : ?speakerTrack
+      & out$(speakerTrack !speakerTrack)
+      &   str$(!(its.speaker) "." !(its.before))
+        : ?beforeTrack
+      & out$(beforeTrack !beforeTrack)
+      &   !xml
+        :   ?A
+            ( annotation
+            .   ?annatt
+              ,   ?AA
+                  ( body
+                  .   ?bodyatt
+                    ,     ?AAA
+                          ( track
+                          .     ?trackattA
+                                (name.!speakerTrack)
+                                ?trackattZ
+                            , ?ELS
+                          )
+                          ?ZZZ
+                      |   ?AAA
+                          (   ( track
+                              .   ? (name.!beforeTrack) ?
+                                ,   ?
+                                  &   
+                                    : ?trackattA
+                                    : ?trackattZ
+                                    : ?ELS
+                              )
+                              ?
+                          : ?ZZZ
+                          )
+                  )
+                  ?ZZ
+            )
+            ?Z
+      & out$FoundTrack
+      &     !A
+            ( annotation
+            .   !annatt
+              ,   !AA
+                  ( body
+                  .   !bodyatt
+                    ,   !AAA
+                        ( track
+                        .     !trackattA
+                              (name.!speakerTrack)
+                              !trackattZ
+                          , !els
+                        )
+                        !ZZZ
+                  )
+                  !ZZ
+            )
+            !Z
+        : ?xml
+      & out$constructed
+      &   str$(longBasename$!Anvil "." (its.nameAddition)$() ".anvil")
+        : ?merg
+      & out$(merg !merg)
+      & put$(toML$!xml,!merg,NEW,BIN)
+      & out$putted
+      & !merg
+  )
+  ( doit
+  =   
+    .   ( rat
+        =   
+          .   get$(str$("[" !arg "]"),MEM,JSN):(,?arg)
+            & !arg
+        )
+      & ( path
+        =   htap
+          .   @( rev$!arg
+               : (? "/" ?htap|?&".":?htap)
+               )
+            & str$(rev$!htap "/")
+        )
+      & ( basename
+        =   enam
+          .   @(rev$!arg:(?enam "/" ?|?enam))
+            & @(rev$!enam:(?name "." ?|?name))
+            & !name
+        )
+      & ( longBasename
+        =   enam
+          .   @(rev$!arg:(?enam "/" ?|?enam))
+            & @(!enam:(? "." ?enam|?enam))
+            & rev$!enam
+        )
+      & ( overlap
+        =   a b c d
+          .   !arg:(?a,?b.?c,?d)
+            & (!a:~<!c:~>!d|!c:~<!a:~>!b)
+        )
+      & ( readFacetrackerAnnotation
+        =     start end L R e
+            , dir name rho x xo y yo
+            , Start End
+          .   !arg:? [?LEN
+            & out$(LEN !LEN "(FULL)")
+            & (   !(its.interval.start):?Start
+                & !(its.interval.end):?End
+                & !Start:~<0
+                & !Start:<!End
+                &   !arg
+                  :   ?
+                      (   ( el
+                          .   ? (start.?start) ?
+                            , ?&rat$!start:~<!Start
+                          )
+                          ?
+                      : ?arg
+                      )
+                &   !arg
+                  :   ?arg
+                      ( el
+                      .   ? (end.?end) ?
+                        , ?&rat$!end:>!End
+                      )
+                      ?
+                & !arg:? [?LEN
+                & out$(LEN !LEN "(REDUCED)")
+              | 
+              )
+            &   whl
+              ' (   !arg
+                  :   ?
+                      ( el
+                      .   ? (start.?start) (end.?end) ?
+                        , ( attribute
+                          .   (name.?name)
+                            ,   ( point
+                                .     (time.?)
+                                      (x.?rho)
+                                      (y.?dir)
+                                  , 
+                                )
+                                ( point
+                                .     (time.?)
+                                      (x.?xo)
+                                      (y.?yo)
+                                  , 
+                                )
+                                ( point
+                                .     (time.?)
+                                      (x.?x)
+                                      (y.?y)
+                                  , 
+                                )
+                          )
+                      )
+                      ?arg
+                & get$(!rho,MEM):?rho
+                & get$(!dir,MEM):?dir
+                & get$(!xo,MEM):?xo
+                & get$(!x,MEM):?x
+                & get$(!yo,MEM):?yo
+                & get$(!y,MEM):?y
+                &     ( ts$(ro$!start),ts$(ro$!end)
+                      . !name
+                      . !rho,!dir
+                      . !x+-1*!xo,!y+-1*!yo
+                      )
+                      !L
+                  : ?L
+                )
+            & 0:?R
+            & whl'(!L:%?e ?L&!e+!R:?R)
+            & times$
+            & !R
+        )
+      & (ro=.div$(100*rat$!arg+1/2,1))
+      & ( fix
+        =   f d
+          .   div$(10000*!arg+1/2,1):?arg
+            & (   !arg:~<100
+                & @(!arg:?f [-3 ?d)
+                & str$(!f "." !d)
+              | !arg:~<10&str$("0." !arg)
+              | str$("0.0" !arg)
+              )
+        )
+      & ( readHead
+        =   start end L R e HeadMovement
+          .     whl
+              ' (   !arg
+                  :   ?
+                      ( el
+                      .   ? (start.?start) (end.?end) ?
+                        ,   ?
+                            ( attribute
+                            . (name.HeadMovement),?HeadMovement
+                            )
+                            ?
+                      )
+                      ?arg
+                &     ( ts$(ro$!start),ts$(ro$!end)
+                      . HeadMovement
+                      . !HeadMovement
+                      )
+                      !L
+                  : ?L
+                )
+            & 0:?R
+            & whl'(!L:%?e ?L&!e+!R:?R)
+            & times$
+            & !R
+        )
+      & ( readPrediction
+        =   start end L R e what
+          .   !arg:(?arg.?what)
+            &   whl
+              ' (   !arg
+                  :   ?
+                      ( el
+                      .   ? (start.?start) (end.?end) ?
+                        , ?
+                      )
+                      ?arg
+                &     (ts$(ro$!start),ts$(ro$!end).!what.1)
+                      !L
+                  : ?L
+                )
+            & 0:?R
+            & whl'(!L:%?e ?L&!e+!R:?R)
+            & times$
+            & !R
+        )
+      & ( table
+        =   Tit cols head line thead tline tlines val
+          .   !arg:%?head ?arg
+            & :?thead:?cols
+            &   whl
+              ' ( !head:(?Tit.?head)
+                & !cols "| c ":?cols
+                & !thead "\\bf " !Tit " & ":?thead
+                )
+            & !cols "| c |":?cols
+            & !thead "\\bf " !head " \\\\" \n:?thead
+            & str$!thead:?thead
+            & :?tlines
+            &   whl
+              ' ( !arg:%?line ?arg
+                & (   !line:(.)
+                    & !tlines "\\hline" \n:?tlines
+                  |   :?tline
+                    &   whl
+                      ' ( !line:(?val.?line)
+                        & !tline !val " & ":?tline
+                        )
+                    & !tline !line " \\\\" \n:?tline
+                    & !tlines !tline:?tlines
+                  )
+                )
+            &   str
+              $ ( "
+\\begin{table}[h]
+\\begin{center}
+\\begin{tabular}{"
+                  !cols
+                  "}\n\\hline"
+                  !thead
+                  "\\hline\n"
+                  !tlines
+                  "\\hline
+\\end{tabular}
+\\end{center}
+\\caption{\\label{test results} Several statistics obtained from training
+an SVM model on one video and testing the SVM model on another video with
+the same person standing on the same spot and generally facing in the same
+direction. Each video is about 8 minutes long and has a rate of 25 frames per
+second.}
+\\end{table}
+
+
+If there are no more than \\textless margin \\textgreater negative frames
+between two positive frames, the negative frames are
+converted to positive frames. When margin = 2 the ratio 
+``true positive''/``true negative'' is maximal. The accuracy, however, reaches
+a maximum for a much higher value of the margin, 17 frames, or 0.68 seconds.
+The input column mentions the observables that were used to train and test
+an SVM model. The meaning of the letters is: 
+V=velocity, A=Acceleration, J=Jerk. tp=true positive, tn=true negative, 
+fp=false positive, fn=false negative. Positive frame=head movement predicted
+for that frame, negative=no head movement predicted for that frame. Almost
+exactly 1/3 of all considered frames are incorporated in manual annotations of
+head movements. Accuracy=percentage correctly predicted frames (either true
+positive or true negative). ``motion''= percentage of positive frames that have
+been predicted positive (taking margin into account). ``no motion''= percentage
+of negative frames that have been predicted negative (discounting frames that
+have been turned into positive frames by taking the margin into account.)     "
+                )
+        )
+      & ( statistics
+        =     biglist fillUp fn fp tn tp biglist margin
+            , analyseFrames analyseMovements
+            , formattedResults
+            , HeadMovements movements
+            , A B LIST nbiglist
+          .   ( fillUp
+              =   margin invrt bridge s e vals next t obs
+                .   !arg:(?margin.?biglist.?obs)
+                  & (   !margin:>0
+                      & :?invrt
+                      & 0:?bridge
+                      &   whl
+                        ' ( !biglist:(?s,?e.?vals)+?biglist
+                          & (   !vals:?+(!obs.?)+?
+                              & !e+4*!margin:?bridge
+                            |     !biglist
+                                : (?next+[~<!margin+?|?next)
+                              &   !next
+                                : ?+(~>!bridge,?.?+(!obs.?)+?)+?
+                              & (!obs.2)+!vals:?vals
+                            | 0:?bridge
+                            )
+                          &   (!s,!e.!vals) !invrt
+                            : ?invrt
+                          )
+                      &   whl
+                        ' ( !invrt:%?t ?invrt
+                          & !t+!biglist:?biglist
+                          )
+                      &   lst
+                        $ ( biglist
+                          , str$(filledUpBiglist !margin !obs)
+                          , NEW
+                          )
+                    | 
+                    )
+                  & !biglist
+              )
+            & ( analyseFrames
+              =     biglist observables fn fp tn tp
+                  , HeadMovements cp
+                  , t vals HeadMovement
+                  , A SumPi SumFi Z
+                  , SumPi2 SumMi min max Fi
+                .   !arg:(?biglist.?observables)
+                  & 0:?fn:?fp:?tn:?tp
+                  & 0:?HeadMovements:?cp
+                  &   whl
+                    ' ( !biglist:(?t.?vals)+?biglist
+                      & ( !vals:?+(HeadMovement.?HeadMovement)+?
+                        | "(no movement)":?HeadMovement
+                        )
+                      & (     !HeadMovements
+                            :   ?A
+                              + ( !HeadMovement
+                                .   (?SumPi.?SumFi)
+                                  , (?SumPi2.?SumMi)
+                                  , (?min.?max)
+                                )
+                              + ?Z
+                          & !A+!Z:?HeadMovements
+                        |     0
+                            : ?SumPi
+                            : ?SumFi
+                            : ?SumPi2
+                            : ?SumMi
+                            : ?max
+                            : ?Fi
+                          & 100000000:?min
+                        )
+                      & 1+!SumFi:?SumFi
+                      & 1+!Fi:?Fi
+                      & (   !vals:?+(!observables.?)+?
+                          & (   !HeadMovement:"(no movement)"
+                              & 1+!fp:?fp
+                            |   1+!tp:?tp
+                              & 1+!cp:?cp
+                            )
+                        |   !HeadMovement:"(no movement)"
+                          & 1+!tn:?tn
+                          & 1+!cp:?cp
+                        | 1+!fn:?fn
+                        )
+                      & (   !biglist
+                          : (?.?+(HeadMovement.!HeadMovement)+?)+?
+                        |   !SumPi2+!cp^2:?SumPi2
+                          & !SumPi+!cp:?SumPi
+                          & 1+!SumMi:?SumMi
+                          & ( !cp*!Fi^-1:>!max:?max
+                            | 
+                            )
+                          & ( !cp*!Fi^-1:<!min:?min
+                            | 
+                            )
+                          & 0:?cp:?Fi
+                        )
+                      &     ( !HeadMovement
+                            .   (!SumPi.!SumFi)
+                              , (!SumPi2.!SumMi)
+                              , (!min.!max)
+                            )
+                          + !HeadMovements
+                        : ?HeadMovements
+                      )
+                  &   lst
+                    $ ( HeadMovements
+                      , str$(!observables "HeadMovements.bra")
+                      , NEW
+                      )
+                  & (!HeadMovements.!fn.!fp.!tn.!tp)
+              )
+            & ( analyseMovements
+              =     movements HeadMovements SumPi SumFi SD2
+                  , SumPi2 SumMi min max
+                  , movements HeadMovement obser
+                .   !arg:(?HeadMovements.?obser)
+                  & 0:?movements
+                  &   whl
+                    ' (   !HeadMovements
+                        :   ( ?HeadMovement
+                            .   (?SumPi.?SumFi)
+                              , (?SumPi2.?SumMi)
+                              , (?min.?max)
+                            )
+                          + ?HeadMovements
+                      &   !SumFi^-2*(!SumMi*!SumPi2+-1*!SumPi^2)
+                        : ?SD2
+                      &     ( fix$(!SumPi*!SumFi^-1)
+                            . !HeadMovement
+                            . !SumMi
+                            . !SumFi
+                            . !SumPi
+                            . !SumPi2
+                            . fix$(sqrt$!SD2)
+                            . fix$!min
+                            . fix$!max
+                            )
+                          + !movements
+                        : ?movements
+                      )
+                  &   lst
+                    $ ( movements
+                      , str$(HeadMovements !margin !obser)
+                      , NEW
+                      , RAW
+                      )
+                  & !movements
+              )
+            & ( sanityCheck
+              =     HeadMovements SumPi SumFi
+                  , SumPi2 SumMi min max
+                  , HeadMovement obser
+                  , F P
+                .   !arg:(?HeadMovements.?obser)
+                  & 0:?P:?F
+                  &   whl
+                    ' (   !HeadMovements
+                        :   ( ?HeadMovement
+                            .   (?SumPi.?SumFi)
+                              , (?SumPi2.?SumMi)
+                              , (?min.?max)
+                            )
+                          + ?HeadMovements
+                      & !SumPi+!P:?P
+                      & !SumFi+!F:?F
+                      )
+                  & !P !F !P*!F^-1 fix$(!P*!F^-1)
+              )
+            & ( formattedResults
+              =     F accuracy baseline fractionHeadmovementsPredicted
+                  , fractionSilencePredicted precision recall tot
+                  , tp tn fp fn obs
+                .   !arg:(?obs.?tp.?tn.?fp.?fn)
+                  & !tp+!tn+!fp+!fn:?tot
+                  & fix$((!tp+!tn)*!tot^-1):?accuracy
+                  &   fix$((!tn+!fp)*!tot^-1) " " (!tn+!fp)*!tot^-1
+                    : ?baseline
+                  &   fix$(!tp*(!tp+!fn)^-1)
+                    : ?fractionHeadmovementsPredicted
+                  &   fix$(!tn*(!tn+!fp)^-1)
+                    : ?fractionSilencePredicted
+                  & fix$(!tp*(!tp+!fp)^-1):?precision
+                  & fix$(!tp*(!tp+!fn)^-1):?recall
+                  &   fix$(2*!tp*(!tp+!fp)^-1*!tp*(!tp+!fn)^-1)
+                    : ?F
+                  & ( ( !obs
+                      . !margin
+                      . !tp
+                      . !tn
+                      . !fp
+                      . !fn
+                      . !accuracy
+                      . !fractionHeadmovementsPredicted
+                      . !fractionSilencePredicted
+                      . fix$(1/100*!tp*!fp^-1)
+                      )
+                    , ( !obs
+                      . !margin
+                      . !tp
+                      . !tn
+                      . !fp
+                      . !fn
+                      . !accuracy
+                      . !precision
+                      . !recall
+                      . !F
+                      )
+                    )
+              )
+            & ( analy
+              =     biglist obs bev LL RR length A B
+                  , F M SD2 avgPi
+                .   ( filter
+                    =   A B LL
+                      .   !arg:(?biglist.?bev)
+                        & :?LL
+                        &   whl
+                          ' (   !biglist
+                              :   ?
+                                + ( (?.?+(HeadMovement.!bev)+?)+?
+                                  : ?B
+                                  )
+                            &   !B
+                              :   ?A
+                                + ( (?.?+(HeadMovement.~!bev)+?)+?
+                                  : ?biglist
+                                  )
+                            & !A !LL:?LL
+                            & :?A:?B
+                            )
+                        & !B !LL
+                    )
+                  & ( getFandM
+                    =   F M LL A B length
+                      .   !arg:?LL
+                        & 0:?F:?M
+                        &   whl
+                          ' ( !LL:%?A ?LL
+                            & 0:?length
+                            &   whl
+                              ' ( !A:%?B+?A
+                                & 1+!length:?length
+                                )
+                            & 1+!M:?M
+                            & !length+!F:?F
+                            )
+                        & (!F.!M)
+                    )
+                  & ( AVG
+                    =   SumPi A LL B obs M avgPi Pi
+                      .   !arg:(?LL,?obs,?M,?F)
+                        & 0:?SumPi
+                        &   whl
+                          ' ( !LL:%?A ?LL
+                            & 0:?Pi
+                            &   whl
+                              ' ( !A:%?B+?A
+                                & (   !B:(?.?+(!obs.?)+?)
+                                    & ( !bev:"(no movement)"
+                                      | 1+!Pi:?Pi
+                                      )
+                                  |   !bev:"(no movement)"
+                                    & 1+!Pi:?Pi
+                                  | 
+                                  )
+                                )
+                            & !M*!F^-1*!Pi+!SumPi:?SumPi
+                            )
+                        & !SumPi*!M^-1:?avgPi
+                        & !avgPi
+                    )
+                  & ( getSD2
+                    =   SD2 totX2 RR A B Pi M F avgPi
+                      .   !arg:(?RR.?obs.?M.?F.?avgPi)
+                        & 0:?totX2
+                        &   whl
+                          ' ( !RR:%?A ?RR
+                            & 0:?Pi
+                            &   whl
+                              ' ( !A:%?B+?A
+                                & (   !B:(?.?+(!obs.?)+?)
+                                    & ( !bev:"(no movement)"
+                                      | 1+!Pi:?Pi
+                                      )
+                                  |   !bev:"(no movement)"
+                                    & 1+!Pi:?Pi
+                                  | 
+                                  )
+                                )
+                            &   (!M*!F^-1*!Pi+-1*!avgPi)^2+!totX2
+                              : ?totX2
+                            )
+                        & !totX2*!M^-1:?SD2
+                        & !SD2
+                    )
+                  & !arg:(?biglist.?obs.?bev)
+                  & filter$(!biglist.!bev):?LL
+                  & getFandM$!LL:(?F.?M)
+                  & lst$(LL,str$(LL !obs !bev),RAW,NEW)
+                  & AVG$(!LL,!obs,!M,!F):?avgPi
+                  & getSD2$(!LL.!obs.!M.!F.!avgPi):?SD2
+                  & ( !avgPi
+                    . !bev
+                    . !M
+                    . !F
+                    . !SD2
+                    . fix$!avgPi
+                    . fix$(sqrt$!SD2)
+                    )
+              )
+            & ( analyAll
+              =     LIST
+                    obs
+                    biglist
+                    mv
+                    F
+                    M
+                    SD2
+                    avgPi
+                    favgPi
+                    fsqrtSD2
+                    totAvg
+                    totF
+                .   0:?LIST
+                  & !arg:(?biglist.?obs)
+                  & 0:?totAvg:?totF
+                  & (   !biglist
+                      :   ?
+                        + ( ?
+                          .   ?+(HeadMovement.?mv)+?
+                            & ( !LIST:?+(?.!mv.?)+?
+                              |     analy$(!biglist.!obs.!mv)
+                                  : ( ?avgPi
+                                    . ?mv
+                                    . ?M
+                                    . ?F
+                                    . ?SD2
+                                    . ?favgPi
+                                    . ?fsqrtSD2
+                                    )
+                                &     (!avgPi.!mv.!M.!F.!favgPi.!fsqrtSD2)
+                                    + !LIST
+                                  : ?LIST
+                                & !F+!totF:?totF
+                                & !avgPi*!F+!totAvg:?totAvg
+                              )
+                            & ~
+                          )
+                        + ?
+                    | 
+                    )
+                  & !LIST
+              )
+            & !arg:(?arg.?biglist.?margin)
+            & fillUp$(!margin.!biglist.!arg):?biglist
+            & lst$(biglist,"filledup.txt",NEW RAW)
+            & :?nbiglist
+            &   whl
+              ' ( !biglist:(?A.?B)+?biglist
+                & ( !B:?+(HeadMovement.?)+?
+                  | (HeadMovement."(no movement)")+!B:?B
+                  )
+                & (!A.!B) !nbiglist:?nbiglist
+                )
+            &   whl
+              ' ( !nbiglist:(?A.?B) ?nbiglist
+                & (!A.!B)+!biglist:?biglist
+                )
+            & lst$(biglist,str$(!arg bigl),RAW,NEW)
+            & analyAll$(!biglist.!arg):?LIST
+            & lst$(LIST,LIST,NEW)
+            &   analyseFrames$(!biglist.!arg)
+              : (?HeadMovements.?fn.?fp.?tn.?tp)
+            & analyseMovements$(!HeadMovements.!arg):?movements
+            & ( formattedResults$(!arg.!tp.!tn.!fp.!fn)
+              . !arg
+              . !margin
+              . !movements
+              )
+        )
+      & ( getPrediction
+        =   trackName ObservablesAbbr trackContent tracks
+          .   !arg:(?trackName.?ObservablesAbbr.?tracks)
+            &   !tracks
+              :   ?
+                  ( track
+                  .     ?
+                        ( name
+                        . @(?:!(its.speaker) "." !trackName)
+                        )
+                        ?
+                    , ?trackContent
+                  )
+                  ?
+            & readPrediction$(!trackContent.!ObservablesAbbr)
+        )
+      & ( getFaceTrack
+        =   trackName trackContent tracks
+          .   !arg:(?trackName.?tracks)
+            &   !tracks
+              :   ?
+                  ( track
+                  .     ?
+                        ( name
+                        . @(?:!(its.speaker) "." !trackName)
+                        )
+                        ?
+                    , ?trackContent
+                  )
+                  ?
+            & readFacetrackerAnnotation$!trackContent
+        )
+      & ( makeSVMinput
+        =   lines observables s e w H J V A biglist xx
+          .   !arg:(?biglist.?observables)
+            & out$(str$("(makeSVMinput) observables=" !observables))
+            & :?lines
+            & (   !observables:? acceleration ?
+                & (   !observables:? jerk ?
+                    & (   !observables:? velocity ?
+                        & ajv:?xx
+                        &   whl
+                          ' (   !biglist
+                              : (?s,?e.?w.?H)+?biglist
+                            & (   !w:acceleration
+                                &   !biglist
+                                  :   (!s,!e.jerk.?J)
+                                    + (!s,!e.velocity.?V)
+                                    + ?biglist
+                                &     (!s,!e..!V !H !J)
+                                      !lines
+                                  : ?lines
+                              |   !w:HeadMovement
+                                &   !biglist
+                                  :   (!s,!e.acceleration.?A)
+                                    + (!s,!e.jerk.?J)
+                                    + (!s,!e.velocity.?V)
+                                    + ?biglist
+                                &     (!s,!e.!H.!V !A !J)
+                                      !lines
+                                  : ?lines
+                              | 
+                              )
+                            )
+                      |   aj:?xx
+                        &   whl
+                          ' (   !biglist
+                              : (?s,?e.?w.?H)+?biglist
+                            & (   !w:acceleration
+                                &   !biglist
+                                  : (!s,!e.jerk.?J)+?biglist
+                                &   (!s,!e..!H !J) !lines
+                                  : ?lines
+                              |   !w:HeadMovement
+                                &   !biglist
+                                  :   (!s,!e.acceleration.?A)
+                                    + (!s,!e.jerk.?J)
+                                    + ?biglist
+                                &   (!s,!e.!H.!A !J) !lines
+                                  : ?lines
+                              | 
+                              )
+                            )
+                      )
+                  |   !observables:? velocity ?
+                    & av:?xx
+                    &   whl
+                      ' ( !biglist:(?s,?e.?w.?H)+?biglist
+                        & (   !w:acceleration
+                            &   !biglist
+                              : (!s,!e.velocity.?V)+?biglist
+                            &   (!s,!e..!V !H) !lines
+                              : ?lines
+                          |   !w:HeadMovement
+                            &   !biglist
+                              :   (!s,!e.acceleration.?A)
+                                + (!s,!e.velocity.?V)
+                                + ?biglist
+                            &   (!s,!e.!H.!V !A) !lines
+                              : ?lines
+                          | 
+                          )
+                        )
+                  |   a:?xx
+                    &   whl
+                      ' ( !biglist:(?s,?e.?w.?H)+?biglist
+                        & (   !w:acceleration
+                            &   (!s,!e..!H) !lines
+                              : ?lines
+                          |   !w:HeadMovement
+                            &   !biglist
+                              : (!s,!e.acceleration.?A)+?biglist
+                            &   (!s,!e.!H.!A) !lines
+                              : ?lines
+                          | 
+                          )
+                        )
+                  )
+              |   !observables:? jerk ?
+                & (   !observables:? velocity ?
+                    & jv:?xx
+                    &   whl
+                      ' ( !biglist:(?s,?e.?w.?H)+?biglist
+                        & (   !w:jerk
+                            &   !biglist
+                              : (!s,!e.velocity.?V)+?biglist
+                            &   (!s,!e..!V !H) !lines
+                              : ?lines
+                          |   !w:HeadMovement
+                            &   !biglist
+                              :   (!s,!e.jerk.?J)
+                                + (!s,!e.velocity.?V)
+                                + ?biglist
+                            &   (!s,!e.!H.!V !J) !lines
+                              : ?lines
+                          | 
+                          )
+                        )
+                  |   j:?xx
+                    &   whl
+                      ' ( !biglist:(?s,?e.?w.?H)+?biglist
+                        & (   !w:jerk
+                            &   (!s,!e..!H) !lines
+                              : ?lines
+                          |   !w:HeadMovement
+                            &   !biglist
+                              : (!s,!e.jerk.?J)+?biglist
+                            &   (!s,!e.!H.!J) !lines
+                              : ?lines
+                          | 
+                          )
+                        )
+                  )
+              |   !observables:? velocity ?
+                & v:?xx
+                &   whl
+                  ' ( !biglist:(?s,?e.?w.?H)+?biglist
+                    & (   !w:velocity
+                        & (!s,!e..!H) !lines:?lines
+                      |   !w:HeadMovement
+                        &   !biglist
+                          : (!s,!e.velocity.?V)+?biglist
+                        & (!s,!e.!H.!V) !lines:?lines
+                      | 
+                      )
+                    )
+              | :?xx
+              )
+            & lst$(lines,lines,NEW)
+            & (!xx.!lines)
+        )
+      & ( toSVMformat
+        =     li tims lines start end H vals
+            , ind LL numbers a b c d timpairs
+          .   !arg:(?lines.?numbers.(=?movementType))
+            & :?li
+            & :?tims:?timpairs
+            &   whl
+              ' (   !lines
+                  : (?start,?end.?H.?vals) ?lines
+                & 0:?ind
+                &   ( !H:~:!movementType&1
+                    | 0
+                    )
+                  : ?LL
+                & (   !numbers:? direction ?
+                    &   whl
+                      ' ( !vals:(?a,?b.?c,?d) ?vals
+                        &     !LL
+                              " "
+                              (1+!ind:?ind)
+                              ":"
+                              !a
+                              " "
+                              (1+!ind:?ind)
+                              ":"
+                              !b
+                              " "
+                              (1+!ind:?ind)
+                              ":"
+                              !c
+                              " "
+                              (1+!ind:?ind)
+                              ":"
+                              !d
+                          : ?LL
+                        )
+                  |   whl
+                    ' ( !vals:(?a,?b.?c,?d) ?vals
+                      &     !LL
+                            " "
+                            (1+!ind:?ind)
+                            ":"
+                            !c
+                            " "
+                            (1+!ind:?ind)
+                            ":"
+                            !d
+                        : ?LL
+                      )
+                  )
+                & !LL \n !li:?li
+                & !start " " !end \n !tims:?tims
+                & (!start.!end) !timpairs:?timpairs
+                )
+            & (!li.!tims.!timpairs)
+        )
+      & ( getBigList
+        =     in getPrediction XML e LMX tracks speaker
+            , PA PJ PV PredV PredA PredJ PredVA PredVAJ
+            , PAn PJn PVn PredAn PredJn PredVn PredVAJn PredVAn
+            , HeadMovements TS allTS P observables t M Ts
+            , Pn Ps biglist times ts expand
+          .   ( times
+              =   Ts t M
+                .   0:?Ts
+                  & :?M
+                  &   whl
+                    ' ( !TS:%?t ?TS
+                      & (!t.)+!Ts:?Ts
+                      )
+                  & !Ts+!allTS:?allTS
+                  & :?TS
+              )
+            & (ts=.!arg !TS:?TS&!arg)
+            & ( expand
+              =   allTS p np s e rr n
+                .   !arg:(?p.?allTS)
+                  & :?np
+                  &   whl
+                    ' ( !p:(?s,?e.?rr)+?p
+                      & !allTS:?+(!s.)+?allTS
+                      &   whl
+                        ' ( !allTS:(?n.)+?allTS
+                          & !n:<!e
+                          & (!s,!n.!rr) !np:?np
+                          & !n:?s
+                          )
+                      & (!s,!e.!rr) !np:?np
+                      & (!n.)+!allTS:?allTS
+                      )
+                  &   whl
+                    ' (!np:%?e ?np&!e+!p:?p)
+                  & !p
+              )
+            &   !arg
+              : (?in.(=?getPrediction).?speaker.?observables)
+            & get$(!in,X ML TRM):?XML
+            & :?LMX
+            &   whl
+              ' ( !XML:%?e ?XML
+                & (!e:" "|!e !LMX:?LMX)
+                )
+            &   whl
+              ' (!LMX:%?e ?LMX&!e !XML:?XML)
+            & nestML$!XML:?XML
+            & lst$(XML,XML,NEW)
+            &   !XML
+              : ? (annotation.?,? (body.?,?tracks) ?) ?
+            &   !tracks
+              :   ?
+                  ( track
+                  .     ?
+                        (name.@(?:!speaker "." HeadMovements))
+                        ?
+                    , ?HeadMovements
+                  )
+                  ?
+            & :?TS
+            & 0:?allTS
+            & readHead$!HeadMovements:?P
+            &   0
+              : ?PA
+              : ?PJ
+              : ?PV
+              : ?PredV
+              : ?PredA
+              : ?PredJ
+              : ?PredVA
+              : ?PredVAJ
+            & out$AnalyseTracks
+            & (     getPrediction$((its.track)$.VAJ.!tracks)
+                  : ?PredVAJ
+                & getPrediction$(predicted-2.VA.!tracks):?PredVA
+              | 
+              )
+            & (   !observables:? acceleration ?
+                & getFaceTrack$(faceA.!tracks):?PA
+                & getPrediction$(predicted-a.A.!tracks):?PredA
+              | 
+              )
+            & (   !observables:? jerk ?
+                & getFaceTrack$(faceJ.!tracks):?PJ
+                & getPrediction$(predicted-a.J.!tracks):?PredJ
+              | 
+              )
+            & (   !observables:? velocity ?
+                & getFaceTrack$(faceV.!tracks):?PV
+                & getPrediction$(predicted-v.J.!tracks):?PredV
+              | 
+              )
+            &   !P+!PV+!PA+!PJ+!PredV+!PredA+!PredJ+!PredVAJ+!PredVA
+              : ?Ps
+            & lst$(Ps,newPs,NEW)
+            & :?M
+            &   whl
+              ' ( !allTS:?*(?t.)+?allTS
+                & !t !M:?M
+                )
+            & 0:?Ts
+            &   whl
+              ' ( !M:%?t ?M
+                & (!t.)+!allTS:?allTS
+                )
+            & lst$(allTS,newAllTS,NEW)
+            &   0
+              : ?PAn
+              : ?PJn
+              : ?PVn
+              : ?PredAn
+              : ?PredJn
+              : ?PredVn
+              : ?PredVAJn
+              : ?PredVAn
+            & (   expand$(!PredVAJ.!allTS):?PredVAJn
+                & expand$(!PredVA.!allTS):?PredVAn
+              | 
+              )
+            & (   !observables:? acceleration ?
+                & expand$(!PA.!allTS):?PAn
+                & expand$(!PredA.!allTS):?PredAn
+              | 
+              )
+            & (   !observables:? jerk ?
+                & expand$(!PJ.!allTS):?PJn
+                & expand$(!PredJ.!allTS):?PredJn
+              | 
+              )
+            & (   !observables:? velocity ?
+                & expand$(!PV.!allTS):?PVn
+                & expand$(!PredV.!allTS):?PredVn
+              | 
+              )
+            & expand$(!P.!allTS):?Pn
+            & lst$(PredVn,PredVn,NEW)
+            & lst$(PredAn,PredAn,NEW)
+            & lst$(PredJn,PredJn,NEW)
+            & lst$(PVn,PVn,NEW)
+            & lst$(PAn,PAn,NEW)
+            & lst$(PJn,PJn,NEW)
+            & lst$(Pn,Pn,NEW)
+            & lst$(PredVAJn,PredVAJn,NEW)
+            & lst$(PredVAn,PredVAn,NEW)
+            &     !PredVn
+                + !PredAn
+                + !PredJn
+                + !PVn
+                + !PAn
+                + !PJn
+                + !Pn
+                + !PredVAJn
+                + !PredVAn
+              : ?biglist
+            & lst$(biglist,newBiglist,NEW)
+            & !biglist
+        )
+      & ( makeContractedBigList
+        =   biglist contractedBigList t s synchronous
+          .   !arg:?biglist
+            & 0:?contractedBigList
+            &   whl
+              ' ( !biglist:(?t.?synchronous)+?biglist
+                &   whl
+                  ' ( !biglist:(!t.?s)+?biglist
+                    & !s+!synchronous:?synchronous
+                    )
+                &   (!t.!synchronous) !contractedBigList
+                  : ?contractedBigList
+                )
+            & 0:?biglist
+            &   whl
+              ' ( !contractedBigList:%?t ?contractedBigList
+                & (     !t
+                      : (?t.?s+(acceleration.?)+(jerk.?)+(velocity.?))
+                    & (!t.!s)+!biglist:?biglist
+                  | 
+                  )
+                )
+            & lst$(biglist,contractedBigList,NEW)
+            & !biglist
+        )
+      & ( makeReport
+        =     MoreTeX
+              N
+              P
+              TeX
+              baseline
+              biglist
+              kind
+              margin
+              maxmargin
+              movements
+              results
+              rows
+              tab2
+          .   !arg:?biglist
+            & out$makeReport
+            & -1:?margin
+            &   ( ( observables
+                  . margin
+                  . tp
+                  . tn
+                  . fp
+                  . fn
+                  . accuracy
+                  . motion
+                  . "no motion"
+                  . tp/fp
+                  )
+                , ( observables
+                  . margin
+                  . tp
+                  . tn
+                  . fp
+                  . fn
+                  . accuracy
+                  . precision
+                  . recall
+                  . F
+                  )
+                )
+              : ?results
+            & 20:?maxmargin
+            & :?allStats
+            &   whl
+              ' ( 1+!margin:<!maxmargin:?margin
+                & (   !margin:(<4|>14)
+                    &   statistics$(VAJ.!biglist.!margin) !allStats
+                      : ?allStats
+                    &   statistics$(VA.!biglist.!margin) !allStats
+                      : ?allStats
+                    &   statistics$(V.!biglist.!margin) !allStats
+                      : ?allStats
+                    &   statistics$(A.!biglist.!margin) !allStats
+                      : ?allStats
+                    &   statistics$(J.!biglist.!margin) !allStats
+                      : ?allStats
+                    & (   !margin+1:<!maxmargin
+                        &     ((.),(.)...)
+                              !allStats
+                          : ?allStats
+                      | 
+                      )
+                  | 
+                  )
+                )
+            & out$(str$("baseline:" !baseline))
+            & !allStats:? (?.VAJ.0.?movements) ?
+            &   whl
+              ' ( !allStats:(?stat.?) ?allStats
+                & !stat !results:?results
+                )
+            & (|get$HeadMovements0VAJ)
+            & :?rows
+            &   whl
+              ' (   !movements
+                  :   ( ?ratio
+                      . ?kind
+                      . ?SumMi
+                      . ?SumFi
+                      . ?SumPi
+                      . ?SumPi2
+                      . ?SD
+                      . ?min
+                      . ?max
+                      )
+                    + ?movements
+                &     !kind
+                      " & "
+                      !SumMi
+                      " & "
+                      !SumFi
+                      " & "
+                      !ratio
+                      " & "
+                      !min
+                      " & "
+                      !max
+                      (|" & " !SD)
+                      " \\\\"
+                      \n
+                      !rows
+                  : ?rows
+                )
+            &     str
+                $ ( "\\begin{table}[h]
+\\begin{center}
+\\begin{tabular}{| c | c | c | c | c | c | c |}"
+                    \n
+                    "\\hline"
+                    \n
+                    ( "Head movement & \\# movements & \\# frames & accuracy (\\%) & min (\\%) & max (\\%) \\\\"
+                    | "Head movement & \\# movements & \\# frames & frame recall (\\%) & min (\\%) & max (\\%) & $SD$ (\\%) \\\\"
+                    )
+                    \n
+                    "\\hline\n"
+                    !rows
+                    "\\hline
+\\end{tabular}
+\\end{center}
+\\caption{\\label{head movement types} How well are different types of head 
+movements detected? 
+Data obtained using an SVM model based on all of velocity, acceleration and jerk,
+with no postprocessing (margin = 0).
+``Accuracy'' is the overall probability that a frame is correctly recognised
+as part of a movement or a non-movement, computed as the ratio between the
+number of recognised frames and the number of all frames in the ensemble of all
+movements of a given type. ``Min'' and ``max'' are the minimum and maximum
+ratios found in the ensemble of all movements of a given type. }
+%%{``SD'' is the standard deviation of the frame recall. A large size of SD compared to the size of the frame recall is an indication that many movements exhibit a frame recall that is close to either the minimum or the maximum recall ratios.}
+\\end{table}"
+                  )
+              : ?tab2
+            & ( ones
+              =   x
+                .     !arg:(?x,?) ?arg
+                    & !x ones$!arg
+                  | 
+              )
+            & ( twos
+              =   x
+                .     !arg:(?,?x) ?arg
+                    & !x twos$!arg
+                  | 
+              )
+            & table$(ones$!results):?TeX
+            & table$(twos$!results):?MoreTeX
+            &     str
+                $ ( "
+%
+% File coling2016.tex
+%
+% Contact: mutiyama@nict.go.jp
+%%
+%% Based on the style files for COLING-2014, which were, in turn,
+%% Based on the style files for ACL-2014, which were, in turn,
+%% Based on the style files for ACL-2013, which were, in turn,
+%% Based on the style files for ACL-2012, which were, in turn,
+%% based on the style files for ACL-2011, which were, in turn, 
+%% based on the style files for ACL-2010, which were, in turn, 
+%% based on the style files for ACL-IJCNLP-2009, which were, in turn,
+%% based on the style files for EACL-2009 and IJCNLP-2008...
+
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\\documentclass[11pt]{article}
+\\usepackage{coling2016}
+\\usepackage{times}
+\\usepackage{url}
+\\usepackage{latexsym}
+
+%\\setlength\\titlebox{5cm}
+
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+
+\\title{Instructions for COLING-2016 Proceedings}
+
+\\author{First Author \\\\
+  Affiliation / Address line 1 \\\\
+  Affiliation / Address line 2 \\\\
+  Affiliation / Address line 3 \\\\
+  {\\tt email@domain} \\\\\\And
+  Second Author \\\\
+  Affiliation / Address line 1 \\\\
+  Affiliation / Address line 2 \\\\
+  Affiliation / Address line 3 \\\\
+  {\\tt email@domain} \\\\}
+
+\\date{}
+
+\\begin{document}
+\\maketitle
+\\begin{abstract}
+Manual annotation is tedious. Earlier attempts to automatically annotate head
+movements were based on thresholds for velocity and acceleration. Here we
+present new results based on using Support Vector Machine learning taking
+velocity, acceleration and the third time derivative of position, ``jerk'', as
+input.
+\\end{abstract}
+
+\\section{Results}
+We have annotated two movies, one for training and one for testing. Using
+OpenCV, each frame was analysed for the x and y coordinates of the same
+participant in a dyadic conversation. The coordinates were buffered so the
+velocity, acceleration and jerk could be computed with reasonable accuracy.
+For velocity a buffer size of 7 frames was used, for acceleration 14, and 
+for jerk 21 frames.
+
+ 
+	  "
+                    !TeX
+                    !MoreTeX
+                    !tab2
+                    "
+\\section*{Conclusions}
+When trained with only one observable (velocity, acceleration or jerk), the
+resulting model is much less predictive than when combining velocity and
+acceleration, or even better, combining velocity, acceleration and jerk.
+
+We have seen that postprocessing the predictions from the SVM model can 
+improve the result.
+Turning negative predictions into positive predictions if a negative
+prediction has a left and right positive neighbour that are no more than
+two frames apart, increases both the accuracy and the ratio between true
+positives and true negatives.
+
+
+\\section*{Acknowledgements}
+
+The acknowledgements should go immediately before the references.  Do
+not number the acknowledgements section. Do not include this section
+when submitting your paper for review.
+
+% include your own bib file like this:
+%\\bibliographystyle{acl}
+%\\bibliography{coling2016}
+
+\\begin{thebibliography}{}
+
+\\bibitem[\\protect\\citename{Aho and Ullman}1972]{Aho:72}
+Alfred~V. Aho and Jeffrey~D. Ullman.
+\\newblock 1972.
+\\newblock {\\em The Theory of Parsing, Translation and Compiling}, volume~1.
+\\newblock Prentice-{Hall}, Englewood Cliffs, NJ.
+
+\\bibitem[\\protect\\citename{{American Psychological Association}}1983]{APA:83}
+{American Psychological Association}.
+\\newblock 1983.
+\\newblock {\\em Publications Manual}.
+\\newblock American Psychological Association, Washington, DC.
+
+\\bibitem[\\protect\\citename{{Association for Computing Machinery}}1983]{ACM:83}
+{Association for Computing Machinery}.
+\\newblock 1983.
+\\newblock {\\em Computing Reviews}, 24(11):503--512.
+
+\\bibitem[\\protect\\citename{Chandra \\bgroup et al.\\egroup }1981]{Chandra:81}
+Ashok~K. Chandra, Dexter~C. Kozen, and Larry~J. Stockmeyer.
+\\newblock 1981.
+\\newblock Alternation.
+\\newblock {\\em Journal of the Association for Computing Machinery},
+  28(1):114--133.
+
+\\bibitem[\\protect\\citename{Gusfield}1997]{Gusfield:97}
+Dan Gusfield.
+\\newblock 1997.
+\\newblock {\\em Algorithms on Strings, Trees and Sequences}.
+\\newblock Cambridge University Press, Cambridge, UK.
+
+\\end{thebibliography}
+
+\\end{document}
+
+	  "
+                  )
+              : ?TeX
+            & put$(!TeX,str$((its.nameAddition)$() "table.tex"),NEW)
+            & out$done
+        )
+      & ( sqrt
+        =   x i
+          .   !arg:0
+            |   !arg:?x
+              & 8:?i
+              &   whl
+                ' ( !i+-1:>0:?i
+                  & 1/2*(!x+!arg*!x^-1):?x
+                  )
+              & !x
+        )
+      & !arg:prep
+      & out$prep
+      & (   '$(its.anvil-file):(=?elms)
+          &   whl
+            ' ( '$elms:(=(?K=?elm) ?elms)
+              &   out
+                $ (str$("transforming " !K "data (" !elm ") to svm format"))
+              &     getBigList
+                  $ (   str
+                      $ ( !(its.relativePathToAnvilWorkingDirectory)
+                          !elm
+                        )
+                    . (=.0)
+                    . !(its.speaker)
+                    . !(its.observables)
+                    )
+                : ?biglist
+              & out$"created biglist"
+              &   makeSVMinput$(!biglist.!(its.observables))
+                : (?xx.?lines)
+              & out$"created list in bracmat format"
+              &     toSVMformat
+                  $ (!lines.!(its.numbers).!(its.movementType))
+                : (?li.?tims.?timpairs)
+              & out$"created list in tab separated format"
+              &     str
+                  $ ( longBasename$!elm
+                      "."
+                      (its.nameAddition)$()
+                      "."
+                      !xx
+                      "."
+                      svm
+                    )
+                : ?file
+              & put$(str$!li,str$(SVM/ !file),NEW)
+              & out$(saved !file)
+              & "Indirect assignment to variables train and test"
+              & !file:?!K
+              &   put
+                $ ( str$!tims
+                  ,   str
+                    $ ( longBasename$!elm
+                        "."
+                        (its.nameAddition)$()
+                        "."
+                        !xx
+                        "."
+                        times
+                      )
+                  , NEW
+                  )
+              & out$done
+              )
+          &   str$("cd SVM & python easy.py " !train " " !test " & cd ..")
+            : ?SVMcommand
+          & out$(SVMcommand !SVMcommand)
+          & sys$!SVMcommand
+          & str$(SVM/ !test ".predict"):?predict
+          & out$(str$("created SVM/" !test ".predict"))
+          & (       (its.insertPredictions)
+                  $ (   str
+                      $ ( !(its.relativePathToAnvilWorkingDirectory)
+                          !(its.anvil-file.test)
+                        )
+                    . !predict
+                    . !timpairs
+                    )
+                : ?AnvilFileEnrichedWithPredictions
+              & (       getBigList
+                      $ ( !AnvilFileEnrichedWithPredictions
+                        . '$getPrediction
+                        . !(its.speaker)
+                        . !(its.observables)
+                        )
+                    : ?biglist
+                  & (     makeContractedBigList$!biglist
+                        : ?contractedBigList
+                      & ( makeReport$!contractedBigList
+                        | "makeReport failed"
+                        )
+                    | out$"makeContractedBigList failed"
+                    )
+                | out$"getBigList failed"
+                )
+            | out$"insertPredictions failed"
+            )
+        |   out
+          $ "Could not find anvil-file containing `train' and `test' members."
+        )
+  )
+  (new=.|(its.doit)$(prep|));
+
+r=
+  get'("SVM.bra",TXT)
+& rmv$(str$(SVM ".bak"))
+& ren$("SVM.bra".str$(SVM ".bak"))
+&   put
+  $ ( "{SVM.bra
+
+Script for training an SVM classifier of head movements and for prediction
+of head movements in a test file.
+
+Produces a LateX table.
+
+Before running this script, edit or inspect the first lines, where
+the following variables are set:
+  relativePathToAnvilWorkingDirectory
+  anvil-file.train
+  anvil-file.test
+  speaker
+  observables
+  numbers
+  interval
+  before
+  movementType
+
+To run this script, download, install and run Bracmat (https://github.com/BartJongejan/Bracmat)
+and then, after the Bracmat promt, type 
+
+{?} get$\"SVM.bra\"
+
+}
+
+"
+    , "SVM.bra"
+    , NEW
+    , BIN
+    )
+& lst'(X,"SVM.bra",APP)
+& put'(\n,"SVM.bra",APP,BIN)
+& lst'(r,"SVM.bra",APP)
+& put$(str$("\nnew'" X ";\n"),"SVM.bra",APP,BIN)
+& ;
+
+new'X;
